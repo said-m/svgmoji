@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import template from 'lodash.template';
 import { TEMPLATE_VARIABLES } from '../constants';
 
 export const htmlRules = {
@@ -11,7 +11,7 @@ export const htmlRules = {
           let result;
 
           try {
-            result = _.template(content)({
+            result = template(content)({
               ...TEMPLATE_VARIABLES,
             });
           } catch (error) {

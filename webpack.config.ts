@@ -1,11 +1,12 @@
 import { isPlainObject } from '@said-m/common';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-import copyWebpackPlugin from 'copy-webpack-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 import { resolve } from 'path';
-import { ConfigurationFactory, EnvironmentPlugin, ProgressPlugin, ProvidePlugin } from 'webpack';
+import { ConfigurationFactory, ProgressPlugin } from 'webpack';
+import ExtensionReloaderPlugin from 'webpack-extension-reloader';
+import * as packageJson from './package.json';
 import { BUILD_PATH } from './webpack/constants';
-import { getHtmlPlugin } from './webpack/helpers';
-import { getPagePath, getPath } from './webpack/helpers/get-path';
+import { getPath } from './webpack/helpers/get-path';
 import { fontRules, htmlRules, imageRules, sassModuleRules, sassRules, staticRules, tsRules } from './webpack/rules';
 
 const webpackConstructor: ConfigurationFactory = environment => {
@@ -20,7 +21,7 @@ const webpackConstructor: ConfigurationFactory = environment => {
 
   return {
     watch: isDev,
-    devtool: 'source-map',
+    devtool: 'inline-source-map',
     optimization: {
       minimize: isProd,
     },
@@ -30,11 +31,18 @@ const webpackConstructor: ConfigurationFactory = environment => {
       port: 8080,
     },
     entry: {
-      main: getPagePath('main'),
+      background: getPath('background'),
     },
     output: {
       path: BUILD_PATH,
-      filename: chunkData => '[name]/[name].js',
+      filename: chunkData => {
+        switch (chunkData.chunk.name) {
+          case 'background':
+            return '[name].js';
+        }
+
+        return '[name]/[name].js';
+      },
     },
     module: {
       rules: [
@@ -55,23 +63,23 @@ const webpackConstructor: ConfigurationFactory = environment => {
       new CleanWebpackPlugin(),
       new ProgressPlugin(),
 
-      new ProvidePlugin({
-        $: 'jquery',
-        jQuery: 'jquery',
-      }),
-
-      new EnvironmentPlugin({
-        NODE_ENV: isProd
-          ? 'production'
-          : 'development',
-        DEBUG: isDev,
-      }),
-
-      new copyWebpackPlugin({
+      new CopyPlugin({
         patterns: [
           {
             from: getPath('static'),
             to: resolve(BUILD_PATH, 'assets'),
+          },
+          {
+            from: getPath('manifest.json'),
+            transform (buffer) {
+              const manifest = JSON.parse(buffer.toString());
+
+              manifest.name = packageJson.name.charAt(0).toUpperCase() + packageJson.name.slice(1);
+              manifest.version = packageJson.version;
+              manifest.author = packageJson.author;
+
+              return JSON.stringify(manifest, null, 2);
+            },
           },
         ],
         options: {
@@ -79,15 +87,13 @@ const webpackConstructor: ConfigurationFactory = environment => {
         },
       }),
 
-      // Страницы
-      getHtmlPlugin({
-        page: 'main',
-        override: {
-          filename: 'index.html',
+      // @ts-ignore
+      new ExtensionReloaderPlugin({
+        port: 8080,
+        reloadPage: true,
+        entries: {
+          background: 'background',
         },
-      }),
-      getHtmlPlugin({
-        page: 'offline',
       }),
     ],
   };
