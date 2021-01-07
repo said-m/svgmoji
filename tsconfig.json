@@ -1,0 +1,19 @@
+{
+  "extends": "@said-m/common/tsconfig",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "lib": [
+      "ESNext",
+      "dom",
+      "WebWorker",
+    ],
+    "typeRoots": ["node_modules/@types"],
+    "sourceMap": false,
+    "outDir": "./dist",
+  },
+  "include": [
+    "src",
+  ],
+  "exclude": []
+}

@@ -1,0 +1,20 @@
+
+:root {
+  --color-background-primary: #{get-color(background, primary)};
+  --color-background-secondary: #{get-color(background, secondary)};
+  --color-background-alternative: #{get-color(background, alternative)};
+  --color-element-primary: #{get-color(element, primary)};
+  --color-element-secondary: #{get-color(element, secondary)};
+  --color-element-alternative: #{get-color(element, alternative)};
+
+  /* @media: */
+
+  [data-theme="dark"] {
+    --color-background-primary: #{get-color(element, primary)};
+    --color-background-secondary: #{get-color(element, secondary)};
+    --color-background-alternative: #{get-color(element, alternative)};
+    --color-element-primary: #{get-color(background, primary)};
+    --color-element-secondary: #{get-color(background, secondary)};
+    --color-element-alternative: #{get-color(background, alternative)};
+  }
+}
