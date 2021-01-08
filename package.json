@@ -2,7 +2,7 @@
   "private": true,
   "name": "svgmoji",
   "version": "0.0.0",
-  "description": "Emoji to relative image link",
+  "description": "Image link for emoji",
   "main": "dist/background.js",
   "repository": "https://gitlab.com/the-expanse/projects/personal/svgmoji",
   "author": "Said Magomedov <saids.inbox@gmail.com>",

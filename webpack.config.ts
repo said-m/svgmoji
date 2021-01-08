@@ -4,7 +4,7 @@ import CopyPlugin from 'copy-webpack-plugin';
 import { resolve } from 'path';
 import { ConfigurationFactory, ProgressPlugin } from 'webpack';
 import ExtensionReloaderPlugin from 'webpack-extension-reloader';
-import * as packageJson from './package.json';
+import { PROJECT_INFO } from './src/constants';
 import { BUILD_PATH } from './webpack/constants';
 import { getPath } from './webpack/helpers/get-path';
 import { fontRules, htmlRules, imageRules, sassModuleRules, sassRules, staticRules, tsRules } from './webpack/rules';
@@ -32,12 +32,14 @@ const webpackConstructor: ConfigurationFactory = environment => {
     },
     entry: {
       background: getPath('background'),
+      'content-script': getPath('content-script'),
     },
     output: {
       path: BUILD_PATH,
       filename: chunkData => {
         switch (chunkData.chunk.name) {
           case 'background':
+          case 'content-script':
             return '[name].js';
         }
 
@@ -74,9 +76,10 @@ const webpackConstructor: ConfigurationFactory = environment => {
             transform (buffer) {
               const manifest = JSON.parse(buffer.toString());
 
-              manifest.name = packageJson.name.charAt(0).toUpperCase() + packageJson.name.slice(1);
-              manifest.version = packageJson.version;
-              manifest.author = packageJson.author;
+              manifest.name = PROJECT_INFO.name;
+              manifest.version = PROJECT_INFO.version;
+              manifest.author = PROJECT_INFO.author;
+              manifest.description = PROJECT_INFO.description;
 
               return JSON.stringify(manifest, null, 2);
             },
@@ -93,6 +96,7 @@ const webpackConstructor: ConfigurationFactory = environment => {
         reloadPage: true,
         entries: {
           background: 'background',
+          contentScripts: ['content-script'],
         },
       }),
     ],

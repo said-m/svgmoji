@@ -9,6 +9,12 @@
       "background.js"
     ]
   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content-script.js"]
+    }
+  ],
 
   "offline_enabled": true,
   "incognito": "spanning"
