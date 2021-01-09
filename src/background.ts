@@ -1,6 +1,7 @@
 import { description } from '../package.json';
-import { CONTEXT_MENU_ITEM_NAMES, PROJECT_INFO } from './constants';
+import { CONTEXT_MENU_ITEM_NAMES, HISTORY_LENGTH, PROJECT_INFO } from './constants';
 import { clipboardWrite, getEmojiFromString, linkForEmoji, notify } from './helpers';
+import { ExtensionStorageInterface } from './interfaces';
 import favicon from './static/favicon.ico';
 
 const tabStore: Map<number, string> = new Map();
@@ -136,14 +137,59 @@ chrome.contextMenus.create({
 
     const link = linkForEmoji(emoji);
 
-    clipboardWrite({
-      value: link,
-    });
-    notify({
-      id: emoji,
-      icon: link,
-      title: `Link saved to clipboard`,
-      message: `Now you can paste ${emoji || 'emoji'} as a link to image!`,
-    });
+    try {
+      const response = await fetch(link, {
+        method: 'HEAD',
+      });
+
+      if (!response.ok) {
+        notify({
+          icon: favicon,
+          title: `Image not found`,
+          message: `Seems like an image for ${emoji ? `"${emoji}"` : 'the emoji'} doesn't exist in the source`,
+        });
+
+        return;
+      }
+
+      clipboardWrite({
+        value: link,
+      });
+      notify({
+        id: emoji,
+        icon: link,
+        title: `Link saved to clipboard`,
+        message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
+      });
+
+      const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
+        'history',
+      ];
+
+      chrome.storage.sync.get(
+        requiredStorageKeys,
+        (result: Partial<ExtensionStorageInterface>) => {
+          const currentHistory = result.history || [];
+
+          const updates: Partial<ExtensionStorageInterface> = {
+            history: [
+              ...currentHistory.filter(
+                thisItem => thisItem !== emoji,
+              ),
+              emoji,
+            ].slice(-HISTORY_LENGTH),
+          };
+
+          chrome.storage.sync.set(updates);
+        },
+      );
+    } catch (error) {
+      notify({
+        id: emoji,
+        icon: favicon,
+        title: 'Image request failed',
+        message: `Request url: ${link}`,
+      });
+    }
   },
 });
