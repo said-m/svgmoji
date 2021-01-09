@@ -136,14 +136,37 @@ chrome.contextMenus.create({
 
     const link = linkForEmoji(emoji);
 
-    clipboardWrite({
-      value: link,
-    });
-    notify({
-      id: emoji,
-      icon: link,
-      title: `Link saved to clipboard`,
-      message: `Now you can paste ${emoji || 'emoji'} as a link to image!`,
-    });
+    try {
+      const response = await fetch(link, {
+        method: 'HEAD',
+      });
+
+      if (!response.ok) {
+        notify({
+          icon: favicon,
+          title: `Image not found`,
+          message: `Seems like an image for ${emoji ? `"${emoji}"` : 'the emoji'} doesn't exist in the source`,
+        });
+
+        return;
+      }
+
+      clipboardWrite({
+        value: link,
+      });
+      notify({
+        id: emoji,
+        icon: link,
+        title: `Link saved to clipboard`,
+        message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
+      });
+    } catch (error) {
+      notify({
+        id: emoji,
+        icon: favicon,
+        title: 'Image request failed',
+        message: `Request url: ${link}`,
+      });
+    }
   },
 });
