@@ -17,4 +17,4 @@ export const CONTEXT_MENU_ITEM_NAMES = {
 
 export const EMOJI_REGEXP = /(?<=^|[^\p{Emoji_Presentation}\p{Emoji}\p{Emoji_Modifier_Base}\uFE0F\u200D]+)(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base}(?:\u200D)?)+(?=[^\p{Emoji_Presentation}\p{Emoji}\uFE0F\p{Emoji_Modifier_Base}\u200D]+|$)/u;
 
-export const SOURCE_PATH = 'https://github.com/twitter/twemoji/tree/master/assets/svg';
+export const SOURCE_PATH = 'https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg';

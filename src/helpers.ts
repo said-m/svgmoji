@@ -1,3 +1,6 @@
+import { EMOJI_REGEXP, SOURCE_PATH } from './constants';
+
+export const getEmojiFromString = (value: string) => value.trim().match(EMOJI_REGEXP)?.[0];
 
 export const stringToCode = ({
   value,
@@ -25,6 +28,10 @@ export const stringToCode = ({
   return result.join(joiner);
 };
 
+export const linkForEmoji = (emoji: string) => `${SOURCE_PATH}/${stringToCode({
+  value: emoji,
+})}.svg`;
+
 export const clipboardWrite = ({
   value,
 }: {
@@ -40,4 +47,29 @@ export const clipboardWrite = ({
 
   copyFrom.blur();
   document.body.removeChild(copyFrom);
+};
+
+export const notify = ({
+  id = '',
+  icon,
+  title,
+  message,
+}: {
+  id?: string;
+  icon: string;
+  title: string;
+  message: string;
+}) => {
+  // удаляю предыдущее аналогичное оповещение,
+  // чтобы chrome (ну или ос) не скрывало его
+  chrome.notifications.clear(id);
+
+  chrome.notifications.create(id, {
+    type: 'basic',
+    silent: true,
+    iconUrl: icon,
+    title,
+    message,
+    isClickable: !!id,
+  });
 };

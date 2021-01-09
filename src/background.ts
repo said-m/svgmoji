@@ -1,6 +1,7 @@
 import { description } from '../package.json';
-import { CONTEXT_MENU_ITEM_NAMES, EMOJI_REGEXP, PROJECT_INFO, SOURCE_PATH } from './constants';
-import { clipboardWrite, stringToCode } from './helpers';
+import { CONTEXT_MENU_ITEM_NAMES, PROJECT_INFO } from './constants';
+import { clipboardWrite, getEmojiFromString, linkForEmoji, notify } from './helpers';
+import favicon from './static/favicon.ico';
 
 const tabStore: Map<number, string> = new Map();
 let activeTabId: number;
@@ -72,7 +73,7 @@ chrome.runtime.onMessage.addListener(
       });
     }
 
-    const emoji = value.trim().match(EMOJI_REGEXP)?.[0];
+    const emoji = getEmojiFromString(value);
 
     // Отсутствие эмодзи в выделении - аналогично отствию выделения
     if (!emoji) {
@@ -87,6 +88,21 @@ chrome.runtime.onMessage.addListener(
     tabStore.set(tabId, emoji);
     updateContextMenuItem({
       tabId,
+    });
+  },
+);
+
+chrome.notifications.onClicked.addListener(
+  id => {
+    // для оповещений emoji использую их же в качестве id
+    const emoji = getEmojiFromString(id);
+
+    if (!emoji) {
+      return;
+    }
+
+    clipboardWrite({
+      value: linkForEmoji(emoji),
     });
   },
 );
@@ -106,22 +122,28 @@ chrome.contextMenus.create({
 
     const emoji = tabStore.get(tabId);
 
+    // Контекстное меню должно быть доступно только при наличии emoji,
+    // но мало ли чего вдруг
     if (!emoji) {
-      // TODO: выводить сообщение об ошибке
-      // которая не должна возникнуть, но вдруг
-      console.log('❌', 'нет emoji в выделении');
+      notify({
+        icon: favicon,
+        title: `Task execution error`,
+        message: 'No emoji to copy to clipboard',
+      });
 
       return;
     }
 
-    const link = `${SOURCE_PATH}/${stringToCode({
-      value: emoji,
-    })}.svg`;
+    const link = linkForEmoji(emoji);
 
     clipboardWrite({
       value: link,
     });
-    // TODO: выводить сообщение об успехе
-    console.log('✔', link);
+    notify({
+      id: emoji,
+      icon: link,
+      title: `Link saved to clipboard`,
+      message: `Now you can paste ${emoji || 'emoji'} as a link to image!`,
+    });
   },
 });

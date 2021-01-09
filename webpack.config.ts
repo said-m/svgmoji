@@ -1,7 +1,6 @@
 import { isPlainObject } from '@said-m/common';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
-import { resolve } from 'path';
 import { ConfigurationFactory, ProgressPlugin } from 'webpack';
 import ExtensionReloaderPlugin from 'webpack-extension-reloader';
 import { PROJECT_INFO } from './src/constants';
@@ -67,10 +66,10 @@ const webpackConstructor: ConfigurationFactory = environment => {
 
       new CopyPlugin({
         patterns: [
-          {
-            from: getPath('static'),
-            to: resolve(BUILD_PATH, 'assets'),
-          },
+          // {
+          //   from: getPath('static'),
+          //   to: resolve(BUILD_PATH, 'assets'),
+          // },
           {
             from: getPath('manifest.json'),
             transform (buffer) {

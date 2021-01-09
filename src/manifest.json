@@ -2,7 +2,9 @@
   "manifest_version": 2,
 
   "permissions": [
-    "contextMenus"
+    "contextMenus",
+    "notifications",
+    "https://raw.githubusercontent.com/*"
   ],
   "background": {
     "scripts": [
