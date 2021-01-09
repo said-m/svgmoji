@@ -1,6 +1,7 @@
 import { description } from '../package.json';
-import { CONTEXT_MENU_ITEM_NAMES, PROJECT_INFO } from './constants';
+import { CONTEXT_MENU_ITEM_NAMES, HISTORY_LENGTH, PROJECT_INFO } from './constants';
 import { clipboardWrite, getEmojiFromString, linkForEmoji, notify } from './helpers';
+import { ExtensionStorageInterface } from './interfaces';
 import favicon from './static/favicon.ico';
 
 const tabStore: Map<number, string> = new Map();
@@ -160,6 +161,28 @@ chrome.contextMenus.create({
         title: `Link saved to clipboard`,
         message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
       });
+
+      const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
+        'history',
+      ];
+
+      chrome.storage.sync.get(
+        requiredStorageKeys,
+        (result: Partial<ExtensionStorageInterface>) => {
+          const currentHistory = result.history || [];
+
+          const updates: Partial<ExtensionStorageInterface> = {
+            history: [
+              ...currentHistory.filter(
+                thisItem => thisItem !== emoji,
+              ),
+              emoji,
+            ].slice(-HISTORY_LENGTH),
+          };
+
+          chrome.storage.sync.set(updates);
+        },
+      );
     } catch (error) {
       notify({
         id: emoji,

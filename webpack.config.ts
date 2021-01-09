@@ -1,11 +1,13 @@
 import { isPlainObject } from '@said-m/common';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
+import { resolve } from 'path';
 import { ConfigurationFactory, ProgressPlugin } from 'webpack';
 import ExtensionReloaderPlugin from 'webpack-extension-reloader';
 import { PROJECT_INFO } from './src/constants';
 import { BUILD_PATH } from './webpack/constants';
-import { getPath } from './webpack/helpers/get-path';
+import { getHtmlPlugin } from './webpack/helpers';
+import { getPagePath, getPath } from './webpack/helpers/get-path';
 import { fontRules, htmlRules, imageRules, sassModuleRules, sassRules, staticRules, tsRules } from './webpack/rules';
 
 const webpackConstructor: ConfigurationFactory = environment => {
@@ -32,6 +34,7 @@ const webpackConstructor: ConfigurationFactory = environment => {
     entry: {
       background: getPath('background'),
       'content-script': getPath('content-script'),
+      popup: getPagePath('popup'),
     },
     output: {
       path: BUILD_PATH,
@@ -61,15 +64,17 @@ const webpackConstructor: ConfigurationFactory = environment => {
     },
     plugins: [
       // Сборка
-      new CleanWebpackPlugin(),
+      new CleanWebpackPlugin({
+        cleanStaleWebpackAssets: false,
+      }),
       new ProgressPlugin(),
 
       new CopyPlugin({
         patterns: [
-          // {
-          //   from: getPath('static'),
-          //   to: resolve(BUILD_PATH, 'assets'),
-          // },
+          {
+            from: getPath('static'),
+            to: resolve(BUILD_PATH, 'assets'),
+          },
           {
             from: getPath('manifest.json'),
             transform (buffer) {
@@ -89,6 +94,11 @@ const webpackConstructor: ConfigurationFactory = environment => {
         },
       }),
 
+      // Страницы
+      getHtmlPlugin({
+        page: 'popup',
+      }),
+
       // @ts-ignore
       new ExtensionReloaderPlugin({
         port: 8080,
@@ -96,6 +106,7 @@ const webpackConstructor: ConfigurationFactory = environment => {
         entries: {
           background: 'background',
           contentScripts: ['content-script'],
+          extensionPage: ['popup'],
         },
       }),
     ],

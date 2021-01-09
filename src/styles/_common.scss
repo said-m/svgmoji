@@ -1,3 +1,58 @@
 @import '~@csstools/normalize.css';
 
 @import 'variables';
+
+body {
+  user-select: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--color-element-primary);
+  background-color: var(--color-background-primary);
+
+  * {
+    color: inherit;
+    box-sizing: border-box;
+
+    transition-property: none;
+
+    outline-width: 0;
+    outline-style: dashed;
+    outline-color: use-color(element, alternative);
+    outline-offset: 3px;
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  line-height: 1em;
+}
+
+h1 {
+  font-size: 23px;
+  margin-bottom: 10px;
+}
+h2 {
+  font-size: 20px;
+  margin-bottom: 7px;
+}
+h3 {
+  font-size: 17px;
+  margin-bottom: 3px;
+}
+h4, h5, h6 {
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+h5, h6 {
+  font-weight: normal;
+}
+h6 {
+  font-size: 10px;
+}
+
+button {
+  border: none;
+  appearance: none;
+}
