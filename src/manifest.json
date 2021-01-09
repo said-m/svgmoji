@@ -4,6 +4,7 @@
   "permissions": [
     "contextMenus",
     "notifications",
+    "storage",
     "https://raw.githubusercontent.com/*"
   ],
   "background": {
