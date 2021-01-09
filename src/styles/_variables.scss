@@ -1,20 +1,32 @@
+$colors: (
+  background: (
+    primary: #FFFFFF,
+    secondary: #F3F8FD,
+    alternative: #F1F1F1,
+  ),
+  element: (
+    primary: #000027,
+    secondary: #373272,
+    alternative: #027597,
+  ),
+);
 
 :root {
-  --color-background-primary: #{get-color(background, primary)};
-  --color-background-secondary: #{get-color(background, secondary)};
-  --color-background-alternative: #{get-color(background, alternative)};
-  --color-element-primary: #{get-color(element, primary)};
-  --color-element-secondary: #{get-color(element, secondary)};
-  --color-element-alternative: #{get-color(element, alternative)};
+  --color-background-primary: #{map-get(map-get($colors, background), primary)};
+  --color-background-secondary: #{map-get(map-get($colors, background), secondary)};
+  --color-background-alternative: #{map-get(map-get($colors, background), alternative)};
+  --color-element-primary: #{map-get(map-get($colors, element), primary)};
+  --color-element-secondary: #{map-get(map-get($colors, element), secondary)};
+  --color-element-alternative: #{map-get(map-get($colors, element), alternative)};
 
-  /* @media: */
+  --border-radius: 3px;
 
   [data-theme="dark"] {
-    --color-background-primary: #{get-color(element, primary)};
-    --color-background-secondary: #{get-color(element, secondary)};
-    --color-background-alternative: #{get-color(element, alternative)};
-    --color-element-primary: #{get-color(background, primary)};
-    --color-element-secondary: #{get-color(background, secondary)};
-    --color-element-alternative: #{get-color(background, alternative)};
+    --color-background-primary: #{map-get(map-get($colors, element), primary)};
+    --color-background-secondary: #{map-get(map-get($colors, element), secondary)};
+    --color-background-alternative: #{map-get(map-get($colors, element), alternative)};
+    --color-element-primary: #{map-get(map-get($colors, background), primary)};
+    --color-element-secondary: #{map-get(map-get($colors, background), secondary)};
+    --color-element-alternative: #{map-get(map-get($colors, background), alternative)};
   }
 }

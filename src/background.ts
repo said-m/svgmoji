@@ -179,7 +179,6 @@ chrome.contextMenus.create({
               emoji,
             ].slice(-HISTORY_LENGTH),
           };
-          console.log('storage updates:', updates);
 
           chrome.storage.sync.set(updates);
         },
