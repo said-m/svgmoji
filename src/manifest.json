@@ -2,13 +2,21 @@
   "manifest_version": 2,
 
   "permissions": [
-    "contextMenus"
+    "contextMenus",
+    "notifications",
+    "https://raw.githubusercontent.com/*"
   ],
   "background": {
     "scripts": [
       "background.js"
     ]
   },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content-script.js"]
+    }
+  ],
 
   "offline_enabled": true,
   "incognito": "spanning"
