@@ -121,14 +121,14 @@ const prepareSourceContextMenuItem = ({
   type,
   parentId,
 }: {
-  type: SourcesEnum,
+  type: SourcesEnum;
   parentId: string;
 }): chrome.contextMenus.CreateProperties => ({
   id: type,
   parentId,
   title: SOURCES[type].title,
   contexts: ['selection'],
-  onclick: async (item, tab) => {
+  onclick: (item, tab) => {
     const tabId = tab?.id;
 
     // компилятор требует
@@ -150,73 +150,139 @@ const prepareSourceContextMenuItem = ({
       return;
     }
 
-    const link = linkForEmoji({
+    const parseAndCopyEmoji = ({
       emoji,
       type,
-    });
-
-    const notificationId = [type, emoji].join(NOTIFICATION_TYPE_ID_JOINER);
-
-    try {
-      const response = await fetch(link, {
-        method: 'HEAD',
-      });
-
-      if (!response.ok) {
-        notify({
-          icon: favicon,
-          title: `Image not found`,
-          message: `Seems like an image for ${emoji ? `"${emoji}"` : 'the emoji'} doesn't exist in the source`,
-        });
-
-        return;
-      }
-
-      clipboardWrite({
-        value: link,
-      });
-      notify({
-        id: notificationId,
-        icon: link,
-        title: `Link saved to clipboard`,
-        message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
-      });
-
-      const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
-        'history',
-      ];
-      const newItem: ExtensionStorageHistoryItemInterface = {
-        type,
+      typesFallback,
+      previous,
+    }: {
+      emoji: string;
+      type: SourcesEnum;
+      typesFallback: Array<SourcesEnum>;
+      previous?: Array<{
+        type: SourcesEnum;
+        notificationId: string;
+      }>;
+    }) => {
+      const link = linkForEmoji({
         emoji,
-        link,
-      };
+        type,
+      });
 
-      chrome.storage.sync.get(
-        requiredStorageKeys,
-        (result: Partial<ExtensionStorageInterface>) => {
-          const currentHistory = result.history || [];
+      const notificationId = [type, emoji].join(NOTIFICATION_TYPE_ID_JOINER);
 
-          const updates: Partial<ExtensionStorageInterface> = {
-            history: [
-              ...currentHistory.filter(
-                thisItem => !isPlainObject(thisItem)
-                  || thisItem.link !== newItem.link,
-              ),
-              newItem,
-            ].slice(-HISTORY_LENGTH),
+      fetch(link, {
+        method: 'HEAD',
+      }).then(
+        response => {
+          if (!response.ok) {
+            const nextSource = typesFallback[0];
+
+            notify({
+              id: previous?.[0]?.notificationId || link,
+              icon: favicon,
+              title: `${SOURCES[type].title} - Image not found`,
+              message: `Seems like an image for ${emoji ? `"${emoji}"` : 'the emoji'} doesn't exist in the source.`,
+              description: [
+                nextSource
+                  ? `Trying to get an image from another source: ${SOURCES[nextSource].title}`
+                  : '',
+                previous
+                  ? `Already checked sources: ${previous.map(
+                    thisItem => SOURCES[thisItem.type].title,
+                  ).join(', ')}`
+                  : '',
+              ].join(' '),
+            });
+
+            if (nextSource) {
+              return parseAndCopyEmoji({
+                emoji,
+                type: nextSource,
+                typesFallback: typesFallback.slice(1),
+                previous: [
+                  {
+                    type,
+                    notificationId: previous?.[0]?.notificationId || link,
+                  },
+                  ...(previous || []),
+                ],
+              });
+            }
+
+            return;
+          }
+
+          clipboardWrite({
+            value: link,
+          });
+          notify({
+            id: notificationId,
+            icon: link,
+            title: `Link saved to clipboard`,
+            message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
+          });
+
+          const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
+            'history',
+          ];
+          const newItem: ExtensionStorageHistoryItemInterface = {
+            type,
+            emoji,
+            link,
           };
 
-          chrome.storage.sync.set(updates);
+          chrome.storage.sync.get(
+            requiredStorageKeys,
+            (result: Partial<ExtensionStorageInterface>) => {
+              const currentHistory = result.history || [];
+
+              const updates: Partial<ExtensionStorageInterface> = {
+                history: [
+                  ...currentHistory.filter(
+                    thisItem => !isPlainObject(thisItem)
+                      || thisItem.link !== newItem.link,
+                  ),
+                  newItem,
+                ].slice(-HISTORY_LENGTH),
+              };
+
+              chrome.storage.sync.set(updates);
+            },
+          );
         },
-      );
-    } catch (error) {
-      notify({
-        id: notificationId,
-        icon: favicon,
-        title: 'Image request failed',
-        message: `Request url: ${link}`,
+      ).catch(() => {
+        if (!typesFallback.length) {
+          notify({
+            id: notificationId,
+            icon: favicon,
+            title: 'Image request failed',
+            message: `Request url: ${link}. Trying to get an image from another source.`,
+          });
+        }
+
+        parseAndCopyEmoji({
+          emoji,
+          type: typesFallback[0],
+          typesFallback: typesFallback.slice(1),
+          previous: [
+            {
+              type,
+              notificationId: previous?.[0]?.notificationId || link,
+            },
+            ...(previous || []),
+          ],
+        });
       });
-    }
+    };
+
+    parseAndCopyEmoji({
+      emoji,
+      type,
+      typesFallback: Object.values(SourcesEnum).filter(
+        thisItem => thisItem !== type,
+      ),
+    });
   },
 });
 
