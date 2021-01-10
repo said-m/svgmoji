@@ -1,4 +1,6 @@
-import { EMOJI_REGEXP, SOURCE_PATH } from './constants';
+import { ObjectInterface } from '@said-m/common/dist/interfaces';
+import { EMOJI_REGEXP, SOURCES } from './constants';
+import { SourcesEnum } from './interfaces';
 
 export const getEmojiFromString = (value: string) => value.trim().match(EMOJI_REGEXP)?.[0];
 
@@ -28,9 +30,16 @@ export const stringToCode = ({
   return result.join(joiner);
 };
 
-export const linkForEmoji = (emoji: string) => `${SOURCE_PATH}/${stringToCode({
+export const linkForEmoji = ({
+  emoji,
+  type,
+}: {
+  emoji: string;
+  type: SourcesEnum;
+}) => `${SOURCES[type].path}/${SOURCES[type].prefix}${stringToCode({
   value: emoji,
-})}.svg`;
+  joiner: SOURCES[type].joiner,
+})}${SOURCES[type].postfix}`;
 
 export const clipboardWrite = ({
   value,
@@ -54,11 +63,13 @@ export const notify = ({
   icon,
   title,
   message,
+  description,
 }: {
   id?: string;
   icon: string;
   title: string;
   message: string;
+  description?: string;
 }) => {
   // удаляю предыдущее аналогичное оповещение,
   // чтобы chrome (ну или ос) не скрывало его
@@ -70,6 +81,15 @@ export const notify = ({
     iconUrl: icon,
     title,
     message,
+    contextMessage: description,
     isClickable: !!id,
   });
 };
+
+export const isEnumItem = <
+  Enumerable extends ObjectInterface,
+  Item extends (string | number)
+>(
+  item: Item,
+  enumerable: Enumerable,
+): item is Extract<Enumerable[keyof Enumerable], Item> => Object.values(enumerable).includes(item);

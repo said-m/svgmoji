@@ -1,7 +1,8 @@
+import { isPlainObject } from '@said-m/common';
 import { description } from '../package.json';
-import { CONTEXT_MENU_ITEM_NAMES, HISTORY_LENGTH, PROJECT_INFO } from './constants';
-import { clipboardWrite, getEmojiFromString, linkForEmoji, notify } from './helpers';
-import { ExtensionStorageInterface } from './interfaces';
+import { CONTEXT_MENU_ITEM_NAMES, HISTORY_LENGTH, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO, SOURCES } from './constants';
+import { clipboardWrite, getEmojiFromString, isEnumItem, linkForEmoji, notify } from './helpers';
+import { ExtensionStorageHistoryItemInterface, ExtensionStorageInterface, SourcesEnum } from './interfaces';
 import favicon from './static/favicon.ico';
 
 const tabStore: Map<number, string> = new Map();
@@ -20,7 +21,7 @@ const updateContextMenuItem = ({
   const emoji = tabStore.get(tabId);
 
   chrome.contextMenus.update(
-    CONTEXT_MENU_ITEM_NAMES.twemoji,
+    CONTEXT_MENU_ITEM_NAMES.root,
     emoji
       ? {
         visible: true,
@@ -93,27 +94,41 @@ chrome.runtime.onMessage.addListener(
   },
 );
 
+// Взаимодействие с оповещением
 chrome.notifications.onClicked.addListener(
   id => {
-    // для оповещений emoji использую их же в качестве id
-    const emoji = getEmojiFromString(id);
+    // для оповещений копирования emoji использую их же в качестве id
+    // с префиксом из наименования источника данных
+    const [type, emoji] = id.split(NOTIFICATION_TYPE_ID_JOINER);
 
-    if (!emoji) {
+    if (
+      !isEnumItem(type, SourcesEnum)
+      || !getEmojiFromString(emoji)
+    ) {
       return;
     }
 
     clipboardWrite({
-      value: linkForEmoji(emoji),
+      value: linkForEmoji({
+        emoji,
+        type,
+      }),
     });
   },
 );
 
-chrome.contextMenus.create({
-  id: CONTEXT_MENU_ITEM_NAMES.twemoji,
-  title: `${PROJECT_INFO.name} - ${description}`,
+const prepareSourceContextMenuItem = ({
+  type,
+  parentId,
+}: {
+  type: SourcesEnum;
+  parentId: string;
+}): chrome.contextMenus.CreateProperties => ({
+  id: type,
+  parentId,
+  title: SOURCES[type].title,
   contexts: ['selection'],
-  visible: false,
-  onclick: async (item, tab) => {
+  onclick: (item, tab) => {
     const tabId = tab?.id;
 
     // компилятор требует
@@ -135,61 +150,157 @@ chrome.contextMenus.create({
       return;
     }
 
-    const link = linkForEmoji(emoji);
+    const parseAndCopyEmoji = ({
+      emoji,
+      type,
+      typesFallback,
+      previous,
+    }: {
+      emoji: string;
+      type: SourcesEnum;
+      typesFallback: Array<SourcesEnum>;
+      previous?: Array<{
+        type: SourcesEnum;
+        notificationId: string;
+      }>;
+    }) => {
+      const link = linkForEmoji({
+        emoji,
+        type,
+      });
 
-    try {
-      const response = await fetch(link, {
+      const notificationId = [type, emoji].join(NOTIFICATION_TYPE_ID_JOINER);
+
+      fetch(link, {
         method: 'HEAD',
-      });
+      }).then(
+        response => {
+          if (!response.ok) {
+            const nextSource = typesFallback[0];
 
-      if (!response.ok) {
-        notify({
-          icon: favicon,
-          title: `Image not found`,
-          message: `Seems like an image for ${emoji ? `"${emoji}"` : 'the emoji'} doesn't exist in the source`,
-        });
+            notify({
+              id: previous?.[0]?.notificationId || link,
+              icon: favicon,
+              title: `${SOURCES[type].title} - Image not found`,
+              message: `Seems like an image for ${emoji ? `"${emoji}"` : 'the emoji'} doesn't exist in the source.`,
+              description: [
+                nextSource
+                  ? `Trying to get an image from another source: ${SOURCES[nextSource].title}`
+                  : '',
+                previous
+                  ? `Already checked sources: ${previous.map(
+                    thisItem => SOURCES[thisItem.type].title,
+                  ).join(', ')}`
+                  : '',
+              ].join(' '),
+            });
 
-        return;
-      }
+            if (nextSource) {
+              return parseAndCopyEmoji({
+                emoji,
+                type: nextSource,
+                typesFallback: typesFallback.slice(1),
+                previous: [
+                  {
+                    type,
+                    notificationId: previous?.[0]?.notificationId || link,
+                  },
+                  ...(previous || []),
+                ],
+              });
+            }
 
-      clipboardWrite({
-        value: link,
-      });
-      notify({
-        id: emoji,
-        icon: link,
-        title: `Link saved to clipboard`,
-        message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
-      });
+            return;
+          }
 
-      const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
-        'history',
-      ];
+          clipboardWrite({
+            value: link,
+          });
+          notify({
+            id: notificationId,
+            icon: link,
+            title: `Link saved to clipboard`,
+            message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
+          });
 
-      chrome.storage.sync.get(
-        requiredStorageKeys,
-        (result: Partial<ExtensionStorageInterface>) => {
-          const currentHistory = result.history || [];
-
-          const updates: Partial<ExtensionStorageInterface> = {
-            history: [
-              ...currentHistory.filter(
-                thisItem => thisItem !== emoji,
-              ),
-              emoji,
-            ].slice(-HISTORY_LENGTH),
+          const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
+            'history',
+          ];
+          const newItem: ExtensionStorageHistoryItemInterface = {
+            type,
+            emoji,
+            link,
           };
 
-          chrome.storage.sync.set(updates);
+          chrome.storage.sync.get(
+            requiredStorageKeys,
+            (result: Partial<ExtensionStorageInterface>) => {
+              const currentHistory = result.history || [];
+
+              const updates: Partial<ExtensionStorageInterface> = {
+                history: [
+                  ...currentHistory.filter(
+                    thisItem => !isPlainObject(thisItem)
+                      || thisItem.link !== newItem.link,
+                  ),
+                  newItem,
+                ].slice(-HISTORY_LENGTH),
+              };
+
+              chrome.storage.sync.set(updates);
+            },
+          );
         },
-      );
-    } catch (error) {
-      notify({
-        id: emoji,
-        icon: favicon,
-        title: 'Image request failed',
-        message: `Request url: ${link}`,
+      ).catch(() => {
+        if (!typesFallback.length) {
+          notify({
+            id: notificationId,
+            icon: favicon,
+            title: 'Image request failed',
+            message: `Request url: ${link}. Trying to get an image from another source.`,
+          });
+        }
+
+        parseAndCopyEmoji({
+          emoji,
+          type: typesFallback[0],
+          typesFallback: typesFallback.slice(1),
+          previous: [
+            {
+              type,
+              notificationId: previous?.[0]?.notificationId || link,
+            },
+            ...(previous || []),
+          ],
+        });
       });
-    }
+    };
+
+    parseAndCopyEmoji({
+      emoji,
+      type,
+      typesFallback: Object.values(SourcesEnum).filter(
+        thisItem => thisItem !== type,
+      ),
+    });
   },
 });
+
+chrome.contextMenus.create({
+  id: CONTEXT_MENU_ITEM_NAMES.root,
+  title: `${PROJECT_INFO.name} - ${description}`,
+  contexts: ['selection'],
+  visible: false,
+});
+
+[
+  CONTEXT_MENU_ITEM_NAMES.twemoji,
+  CONTEXT_MENU_ITEM_NAMES.noto,
+].forEach(
+  thisItem => chrome.contextMenus.create(
+    prepareSourceContextMenuItem({
+      type: thisItem,
+      parentId: CONTEXT_MENU_ITEM_NAMES.root,
+    }),
+  ),
+);
