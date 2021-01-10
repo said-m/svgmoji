@@ -9,9 +9,16 @@
   cursor: pointer;
   display: inline-block;
   text-align: center;
-  padding: 7px 3px;
+  padding-top: 100%;
   border-radius: var(--border-radius);
   background-color: var(--color-background-secondary);
+  background-repeat: no-repeat;
+  background-size: 70% auto;
+  background-position: center center;
+  transition-duration: 70ms;
+  transition-property: outline;
+  outline-style: solid;
+  outline-color: var(--color-background-alternative);
 
   opacity: 0.7;
   &:nth-last-child(1):not(:nth-child(-n+7)) {
@@ -38,5 +45,19 @@
   }
   &:hover:active {
     background-color: var(--color-background-alternative);
+  }
+
+  &:hover {
+    outline-width: 0px;
+    outline-offset: 5px;
+  }
+  &:active {
+    outline-width: 0px;
+    outline-offset: 3px;
+  }
+  &:hover:active,
+  &:focus-visible {
+    outline-width: 3px;
+    outline-offset: 3px;
   }
 }

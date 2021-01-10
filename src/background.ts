@@ -1,7 +1,8 @@
+import { isPlainObject } from '@said-m/common';
 import { description } from '../package.json';
-import { CONTEXT_MENU_ITEM_NAMES, HISTORY_LENGTH, PROJECT_INFO } from './constants';
-import { clipboardWrite, getEmojiFromString, linkForEmoji, notify } from './helpers';
-import { ExtensionStorageInterface } from './interfaces';
+import { CONTEXT_MENU_ITEM_NAMES, HISTORY_LENGTH, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO, SOURCES } from './constants';
+import { clipboardWrite, getEmojiFromString, isEnumItem, linkForEmoji, notify } from './helpers';
+import { ExtensionStorageHistoryItemInterface, ExtensionStorageInterface, SourcesEnum } from './interfaces';
 import favicon from './static/favicon.ico';
 
 const tabStore: Map<number, string> = new Map();
@@ -20,7 +21,7 @@ const updateContextMenuItem = ({
   const emoji = tabStore.get(tabId);
 
   chrome.contextMenus.update(
-    CONTEXT_MENU_ITEM_NAMES.twemoji,
+    CONTEXT_MENU_ITEM_NAMES.root,
     emoji
       ? {
         visible: true,
@@ -93,26 +94,40 @@ chrome.runtime.onMessage.addListener(
   },
 );
 
+// Взаимодействие с оповещением
 chrome.notifications.onClicked.addListener(
   id => {
-    // для оповещений emoji использую их же в качестве id
-    const emoji = getEmojiFromString(id);
+    // для оповещений копирования emoji использую их же в качестве id
+    // с префиксом из наименования источника данных
+    const [type, emoji] = id.split(NOTIFICATION_TYPE_ID_JOINER);
 
-    if (!emoji) {
+    if (
+      !isEnumItem(type, SourcesEnum)
+      || !getEmojiFromString(emoji)
+    ) {
       return;
     }
 
     clipboardWrite({
-      value: linkForEmoji(emoji),
+      value: linkForEmoji({
+        emoji,
+        type,
+      }),
     });
   },
 );
 
-chrome.contextMenus.create({
-  id: CONTEXT_MENU_ITEM_NAMES.twemoji,
-  title: `${PROJECT_INFO.name} - ${description}`,
+const prepareSourceContextMenuItem = ({
+  type,
+  parentId,
+}: {
+  type: SourcesEnum,
+  parentId: string;
+}): chrome.contextMenus.CreateProperties => ({
+  id: type,
+  parentId,
+  title: SOURCES[type].title,
   contexts: ['selection'],
-  visible: false,
   onclick: async (item, tab) => {
     const tabId = tab?.id;
 
@@ -135,7 +150,12 @@ chrome.contextMenus.create({
       return;
     }
 
-    const link = linkForEmoji(emoji);
+    const link = linkForEmoji({
+      emoji,
+      type,
+    });
+
+    const notificationId = [type, emoji].join(NOTIFICATION_TYPE_ID_JOINER);
 
     try {
       const response = await fetch(link, {
@@ -156,7 +176,7 @@ chrome.contextMenus.create({
         value: link,
       });
       notify({
-        id: emoji,
+        id: notificationId,
         icon: link,
         title: `Link saved to clipboard`,
         message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
@@ -165,6 +185,11 @@ chrome.contextMenus.create({
       const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
         'history',
       ];
+      const newItem: ExtensionStorageHistoryItemInterface = {
+        type,
+        emoji,
+        link,
+      };
 
       chrome.storage.sync.get(
         requiredStorageKeys,
@@ -174,9 +199,10 @@ chrome.contextMenus.create({
           const updates: Partial<ExtensionStorageInterface> = {
             history: [
               ...currentHistory.filter(
-                thisItem => thisItem !== emoji,
+                thisItem => !isPlainObject(thisItem)
+                  || thisItem.link !== newItem.link,
               ),
-              emoji,
+              newItem,
             ].slice(-HISTORY_LENGTH),
           };
 
@@ -185,7 +211,7 @@ chrome.contextMenus.create({
       );
     } catch (error) {
       notify({
-        id: emoji,
+        id: notificationId,
         icon: favicon,
         title: 'Image request failed',
         message: `Request url: ${link}`,
@@ -193,3 +219,22 @@ chrome.contextMenus.create({
     }
   },
 });
+
+chrome.contextMenus.create({
+  id: CONTEXT_MENU_ITEM_NAMES.root,
+  title: `${PROJECT_INFO.name} - ${description}`,
+  contexts: ['selection'],
+  visible: false,
+});
+
+[
+  CONTEXT_MENU_ITEM_NAMES.twemoji,
+  CONTEXT_MENU_ITEM_NAMES.noto,
+].forEach(
+  thisItem => chrome.contextMenus.create(
+    prepareSourceContextMenuItem({
+      type: thisItem,
+      parentId: CONTEXT_MENU_ITEM_NAMES.root,
+    }),
+  ),
+);
