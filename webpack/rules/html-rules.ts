@@ -1,7 +1,8 @@
 import template from 'lodash.template';
+import { RuleSetRule } from 'webpack';
 import { TEMPLATE_VARIABLES } from '../constants';
 
-export const htmlRules = {
+export const htmlRules: RuleSetRule = {
   test: /\.html$/,
   use: [
     {

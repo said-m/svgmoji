@@ -1,8 +1,7 @@
-import { isPlainObject } from '@said-m/common';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import { resolve } from 'path';
-import { ConfigurationFactory, ProgressPlugin } from 'webpack';
+import { Configuration, ProgressPlugin } from 'webpack';
 import ExtensionReloaderPlugin from 'webpack-extension-reloader';
 import { PROJECT_INFO } from './src/constants';
 import { BUILD_PATH } from './webpack/constants';
@@ -10,26 +9,18 @@ import { getHtmlPlugin } from './webpack/helpers';
 import { getPagePath, getPath } from './webpack/helpers/get-path';
 import { fontRules, htmlRules, imageRules, sassModuleRules, sassRules, staticRules, tsRules } from './webpack/rules';
 
-const webpackConstructor: ConfigurationFactory = environment => {
-  const env = isPlainObject(environment)
-    ? environment
-    : {
-      production: true,
-    };
-
-  const isDev = isPlainObject(env) && !!env.development;
-  const isProd = isPlainObject(env) && !!env.production;
+const webpackConstructor = (
+  environments: Record<string, unknown>,
+  args: Record<string, unknown>,
+): Configuration => {
+  const isDev = args.mode === 'development';
+  const isProd = args.mode === 'production';
 
   return {
     watch: isDev,
     devtool: 'inline-source-map',
     optimization: {
       minimize: isProd,
-    },
-    devServer: {
-      contentBase: BUILD_PATH,
-      compress: true,
-      port: 8080,
     },
     entry: {
       background: getPath('background'),
@@ -39,7 +30,7 @@ const webpackConstructor: ConfigurationFactory = environment => {
     output: {
       path: BUILD_PATH,
       filename: chunkData => {
-        switch (chunkData.chunk.name) {
+        switch (chunkData.chunk?.name) {
           case 'background':
           case 'content-script':
             return '[name].js';
@@ -67,7 +58,7 @@ const webpackConstructor: ConfigurationFactory = environment => {
       new CleanWebpackPlugin({
         cleanStaleWebpackAssets: false,
       }),
-      new ProgressPlugin(),
+      new ProgressPlugin({}),
 
       new CopyPlugin({
         patterns: [
