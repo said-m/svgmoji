@@ -1,7 +1,8 @@
+import { RuleSetRule } from 'webpack';
 import { SASS_MODULE_REGEX, SASS_REGEX } from '../constants';
 import { getStyleLoaders } from '../helpers';
 
-export const sassRules = {
+export const sassRules: RuleSetRule = {
   test: SASS_REGEX,
   exclude: SASS_MODULE_REGEX,
   use: [
@@ -10,7 +11,7 @@ export const sassRules = {
   ],
 };
 
-export const sassModuleRules = {
+export const sassModuleRules: RuleSetRule = {
   test: SASS_MODULE_REGEX,
   use: [
     ...getStyleLoaders(true),

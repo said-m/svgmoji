@@ -1,7 +1,8 @@
+import { RuleSetRule } from 'webpack';
 import { fontPaths } from '../constants';
 import { getPath } from '../helpers';
 
-export const staticRules = {
+export const staticRules: RuleSetRule = {
   test: getPath('static'),
   include: fontPaths,
   use: [

@@ -1,8 +1,8 @@
-import { Rule } from 'webpack';
+import { RuleSetRule } from 'webpack';
 import { TS_REGEX } from '../constants';
 
-export const tsRules: Rule = {
+export const tsRules: RuleSetRule = {
   test: TS_REGEX,
   exclude: /node_modules/,
-  loaders: 'ts-loader',
+  loader: 'ts-loader',
 };
