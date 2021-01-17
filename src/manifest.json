@@ -22,6 +22,11 @@
     "default_popup": "popup/index.html"
   },
 
+  "icons": {
+    "16": "./assets/images/logo-16.png",
+    "128": "./assets/images/logo-128.png"
+  },
+
   "offline_enabled": true,
   "incognito": "spanning"
 }
