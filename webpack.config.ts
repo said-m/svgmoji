@@ -3,6 +3,7 @@ import CopyPlugin from 'copy-webpack-plugin';
 import { resolve } from 'path';
 import { Configuration, ProgressPlugin } from 'webpack';
 import ExtensionReloaderPlugin from 'webpack-extension-reloader';
+import ZipPlugin from 'zip-webpack-plugin';
 import { PROJECT_INFO } from './src/constants';
 import { BUILD_PATH } from './webpack/constants';
 import { getHtmlPlugin } from './webpack/helpers';
@@ -100,6 +101,16 @@ const webpackConstructor = (
           extensionPage: ['popup'],
         },
       }),
+
+      // @ts-ignore
+      ...(isProd
+          ? [
+            new ZipPlugin({
+              filename: `${PROJECT_INFO.name}-${PROJECT_INFO.version}.zip`,
+            }),
+          ]
+          : []
+      ),
     ],
   };
 };
