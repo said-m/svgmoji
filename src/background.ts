@@ -1,7 +1,7 @@
 import { isPlainObject } from '@said-m/common';
 import { description } from '../package.json';
 import { CONTEXT_MENU_ITEM_NAMES, HISTORY_LENGTH, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO, SOURCES } from './constants';
-import { clipboardWrite, getEmojiFromString, isEnumItem, linkForEmoji, notify } from './helpers';
+import { copy, createLink, extractEmoji, isEnumItem, notify } from './helpers';
 import { ExtensionStorageHistoryItemInterface, ExtensionStorageInterface, SourcesEnum } from './interfaces';
 import favicon from './static/favicon.ico';
 
@@ -75,7 +75,7 @@ chrome.runtime.onMessage.addListener(
       });
     }
 
-    const emoji = getEmojiFromString(value);
+    const emoji = extractEmoji(value);
 
     // Отсутствие эмодзи в выделении - аналогично отствию выделения
     if (!emoji) {
@@ -103,13 +103,13 @@ chrome.notifications.onClicked.addListener(
 
     if (
       !isEnumItem(type, SourcesEnum)
-      || !getEmojiFromString(emoji)
+      || !extractEmoji(emoji)
     ) {
       return;
     }
 
-    clipboardWrite({
-      value: linkForEmoji({
+    copy({
+      value: createLink({
         emoji,
         type,
       }),
@@ -164,7 +164,7 @@ const prepareSourceContextMenuItem = ({
         notificationId: string;
       }>;
     }) => {
-      const link = linkForEmoji({
+      const link = createLink({
         emoji,
         type,
       });
@@ -213,7 +213,7 @@ const prepareSourceContextMenuItem = ({
             return;
           }
 
-          clipboardWrite({
+          copy({
             value: link,
           });
           notify({
