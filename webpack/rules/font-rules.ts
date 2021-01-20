@@ -1,6 +1,7 @@
+import { RuleSetRule } from 'webpack';
 import { fontPaths } from '../constants';
 
-export const fontRules = {
+export const fontRules: RuleSetRule = {
   test: /\.(woff(2)?|ttf|eot|otf|svg)$/,
   include: fontPaths,
   use: [
