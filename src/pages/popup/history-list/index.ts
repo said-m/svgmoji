@@ -1,5 +1,5 @@
 import { isPlainObject } from '@said-m/common';
-import { clipboardWrite } from '../../../helpers';
+import { copy } from '../../../helpers';
 import { ExtensionStorageHistoryItemInterface } from '../../../interfaces';
 import styles from './history-list.module.scss';
 
@@ -27,7 +27,7 @@ export const createHistoryList = ({
         itemEl.tabIndex = 0;
 
         itemEl.onclick = () => {
-          clipboardWrite({
+          copy({
             value: thisItem.link,
           });
         };
