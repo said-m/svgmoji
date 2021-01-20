@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "svgmoji",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Image link for emoji",
   "main": "dist/background.js",
   "repository": "https://gitlab.com/the-expanse/projects/personal/svgmoji",
