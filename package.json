@@ -14,7 +14,8 @@
   ],
   "dependencies": {
     "@csstools/normalize.css": "^11.0.1",
-    "@said-m/common": "^0.0.4"
+    "@said-m/common": "^0.0.4",
+    "sortablejs": "^1.13.0"
   },
   "scripts": {
     "start": "webpack --mode development --watch",
@@ -26,6 +27,7 @@
     "@types/chrome": "^0.0.128",
     "@types/copy-webpack-plugin": "^6.4.0",
     "@types/lodash.template": "^4.5.0",
+    "@types/sortablejs": "^1.10.6",
     "@types/zip-webpack-plugin": "^3.0.1",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "6.4.0",
