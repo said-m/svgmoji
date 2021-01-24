@@ -1,0 +1,28 @@
+
+.component {
+  display: flex;
+  flex-direction: raw;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.item {
+  padding: 3px 7px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--color-background-secondary);
+  border-radius: var(--border-radius);
+
+  &New {
+    &::after {
+      content: '(new)';
+      display: inline-block;
+      color: var(--color-element-alternative);
+      margin-left: 0.25em;
+    }
+  }
+
+  &Disabled {
+    opacity: 0.5;
+  }
+}

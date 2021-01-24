@@ -19,7 +19,7 @@ body {
 
     outline-width: 0;
     outline-style: dashed;
-    outline-color: use-color(element, alternative);
+    outline-color: #{use-color(element, alternative)};
     outline-offset: 3px;
   }
 }
@@ -55,4 +55,10 @@ h6 {
 button {
   border: none;
   appearance: none;
+}
+
+ol, ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }

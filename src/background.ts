@@ -5,7 +5,69 @@ import { store } from './background/store';
 import { updateRootItem } from './background/update-root-item';
 import { CONTEXT_MENU_ITEM_NAMES, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
 import { copy, createLink, extractEmoji, isEnumItem } from './helpers';
-import { SourcesEnum } from './interfaces';
+import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
+
+chrome.runtime.onInstalled.addListener(
+  details => {
+    // const currentVersion = chrome.runtime.getManifest().version;
+    // const previousVersion = details.previousVersion;
+    // const reason = details.reason;
+
+    const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
+      'sources',
+      'sourcePrioritization',
+    ];
+    chrome.storage.sync.get(
+      requiredStorageKeys,
+      (result: Partial<ExtensionStorageInterface>) => {
+        const sources: ExtensionStorageInterface['sources'] = result.sources || {};
+        const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
+          result.sourcePrioritization || [];
+
+        const newSources = Object.values(SourcesEnum).filter(
+          thisItem => !sources[thisItem],
+        );
+
+        const updates: Partial<ExtensionStorageInterface> = {
+          sources: {
+            ...sources,
+            ...Object.fromEntries(
+              newSources.map(
+                (thisItem): [SourcesEnum, ExtensionStorageSourceItemInterface] => [
+                  thisItem,
+                  {
+                    type: thisItem,
+                    isNew: true,
+                    isDisabled: false,
+                  },
+                ],
+              ),
+            ),
+          },
+          sourcePrioritization: [
+            ...sourcePrioritization,
+            ...newSources,
+          ],
+        };
+
+        console.log('Обновление хранилища:', updates);
+
+        chrome.storage.sync.set(updates);
+      },
+    );
+
+    // switch (reason) {
+    //   case 'install':
+    //       break;
+    //   case 'update':
+    //       break;
+    //   case 'chrome_update':
+    //   case 'shared_module_update':
+    //   default:
+    //       break;
+    // }
+  },
+);
 
 // Удаление мусора из хранилища
 chrome.tabs.onRemoved.addListener(
