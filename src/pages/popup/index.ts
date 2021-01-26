@@ -79,40 +79,70 @@ import { createSourcePrioritization } from './source-prioritization';
     'sourcePrioritization',
   ];
 
+  // TODO: в отдельный скоуп
+  const store: Pick<
+    ExtensionStorageInterface,
+    'sources'
+    | 'sourcePrioritization'
+  > = {
+    sources: {},
+    sourcePrioritization: [],
+  };
+
   chrome.storage.sync.get(
     requiredStorageKeys,
     (result: Partial<ExtensionStorageInterface>) => {
-      const history: ExtensionStorageInterface['history'] = result.history || [];
-      const sources: ExtensionStorageInterface['sources'] = result.sources || {};
-      const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
-        result.sourcePrioritization || [];
+      if (result.history) {
+        updateHistory({
+          items: result.history,
+        });
+      }
 
-      updateHistory({
-        items: history,
-      });
+      if (
+        result.sources
+        || result.sourcePrioritization
+      ) {
+        store.sources = result.sources
+          || store.sources;
+        store.sourcePrioritization = result.sourcePrioritization
+          || store.sourcePrioritization;
 
-      updateSources({
-        items: sources,
-        order: sourcePrioritization,
-      });
+        updateSources({
+          items: store.sources,
+          order: store.sourcePrioritization,
+        });
+      }
     },
   );
 
   chrome.storage.onChanged.addListener(
     changes => {
-      const history: ExtensionStorageInterface['history'] = changes?.history?.newValue || [];
-      const sources: ExtensionStorageInterface['sources'] = changes?.sources?.newValue || {};
+      const history: ExtensionStorageInterface['history'] = changes?.history?.newValue;
+      const sources: ExtensionStorageInterface['sources'] = changes?.sources?.newValue;
       const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
-        changes?.sourcePrioritization?.newValue || [];
+        changes?.sourcePrioritization?.newValue;
 
-      updateHistory({
-        items: history,
-      });
+      if (history) {
+        updateHistory({
+          items: history,
+        });
+      }
 
-      updateSources({
-        items: sources,
-        order: sourcePrioritization,
-      });
+      if (
+        sources
+        || sourcePrioritization
+      ) {
+        store.sources = sources
+          || store.sources;
+        store.sourcePrioritization = sourcePrioritization
+          || store.sourcePrioritization;
+
+        // проверять необходимость обновления
+        updateSources({
+          items: store.sources,
+          order: store.sourcePrioritization,
+        });
+      }
     },
   );
 })();

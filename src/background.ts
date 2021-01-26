@@ -28,6 +28,10 @@ chrome.runtime.onInstalled.addListener(
           thisItem => !sources[thisItem],
         );
 
+        if (!newSources.length) {
+          return;
+        }
+
         const updates: Partial<ExtensionStorageInterface> = {
           sources: {
             ...sources,

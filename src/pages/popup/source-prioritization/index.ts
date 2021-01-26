@@ -1,5 +1,7 @@
+import Sortable from 'sortablejs';
 import { SOURCES } from '../../../constants';
-import { ExtensionStorageInterface } from '../../../interfaces';
+import { isEnumItem } from '../../../helpers';
+import { ExtensionStorageInterface, SourcesEnum } from '../../../interfaces';
 import { CreateSourcePrioritizationItemAttrsEnum, CreateSourcePrioritizationListsEnum, CreateSourcePrioritizationListsInterface } from './interfaces';
 import styles from './source-prioritization.module.scss';
 
@@ -41,9 +43,7 @@ export const createSourcePrioritization = ({
   }
 
   componentEl.append(
-    ...[
-      ...lists[CreateSourcePrioritizationListsEnum.enabled],
-    ].reverse().map(
+    ...lists[CreateSourcePrioritizationListsEnum.enabled].map(
       thisItem => {
         const itemEl = document.createElement('li');
         itemEl.dataset[CreateSourcePrioritizationItemAttrsEnum.dataId] = thisItem.type;
@@ -60,6 +60,46 @@ export const createSourcePrioritization = ({
         return itemEl;
       },
     ),
+  );
+
+  Sortable.create(
+    componentEl,
+    {
+      group: 'enabledSources',
+      sort: true,
+      invertSwap: true,
+      animation: 50,
+      onUpdate: event => {
+        const updatedOrder: Array<SourcesEnum> = [];
+
+        Array.from(event.to.children).forEach(
+          thisItem => {
+            if (!(thisItem instanceof HTMLElement)) {
+              return;
+            }
+
+            const itemName = thisItem.dataset[CreateSourcePrioritizationItemAttrsEnum.dataId];
+
+            if (
+              !itemName
+              || !isEnumItem(itemName, SourcesEnum)
+            ) {
+              return;
+            }
+
+            updatedOrder.push(itemName);
+          },
+        );
+
+
+        const updates: Partial<ExtensionStorageInterface> = {
+          sourcePrioritization: updatedOrder,
+        };
+
+        console.log('Обновление приоритетов источников:', updatedOrder);
+        chrome.storage.sync.set(updates);
+      },
+    },
   );
 
   return componentEl;

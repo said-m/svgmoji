@@ -12,6 +12,7 @@
   border-style: solid;
   border-color: var(--color-background-secondary);
   border-radius: var(--border-radius);
+  background-color: var(--color-background-primary);
 
   &New {
     &::after {
