@@ -1,6 +1,6 @@
+import { isEnumValue } from '@said-m/common';
 import Sortable from 'sortablejs';
 import { SOURCES } from '../../../constants';
-import { isEnumItem } from '../../../helpers';
 import { ExtensionStorageInterface, SourcesEnum } from '../../../interfaces';
 import { popupStore } from '../store';
 import { CreateSourcePrioritizationItemAttrsEnum, CreateSourcePrioritizationListsEnum, CreateSourcePrioritizationListsInterface } from './interfaces';
@@ -83,7 +83,7 @@ export const createSourcePrioritization = ({
 
             if (
               !itemName
-              || !isEnumItem(itemName, SourcesEnum)
+              || !isEnumValue(itemName, SourcesEnum)
             ) {
               return;
             }

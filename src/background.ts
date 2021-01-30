@@ -1,3 +1,4 @@
+import { isEnumValue } from '@said-m/common';
 import isEqual from 'lodash.isequal';
 import { description } from '../package.json';
 import { parseSelection } from './background/parse-selection';
@@ -6,7 +7,7 @@ import { store } from './background/store';
 import { updateRootItem } from './background/update-root-item';
 import { updateSourceItemOrder } from './background/update-source-item-order';
 import { CONTEXT_MENU_ITEM_NAMES, CONTEXT_MENU_SOURCE_ITEMS, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
-import { copy, createLink, extractEmoji, isEnumItem } from './helpers';
+import { copy, createLink, extractEmoji } from './helpers';
 import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
 
 chrome.runtime.onInstalled.addListener(
@@ -138,7 +139,7 @@ chrome.notifications.onClicked.addListener(
     const [type, emoji] = id.split(NOTIFICATION_TYPE_ID_JOINER);
 
     if (
-      !isEnumItem(type, SourcesEnum)
+      !isEnumValue(type, SourcesEnum)
       || !extractEmoji(emoji)
     ) {
       return;
