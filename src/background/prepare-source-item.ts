@@ -42,7 +42,7 @@ export const prepareSourceItem = ({
     findAsset({
       emoji,
       type,
-      typesFallback: Object.values(SourcesEnum).filter(
+      typesFallback: store.sourcePrioritization.filter(
         thisItem => thisItem !== type,
       ),
       onSuccess: ({

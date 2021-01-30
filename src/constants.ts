@@ -8,10 +8,14 @@ export const PROJECT_INFO = {
   description: packageJson.description,
 };
 
-export const CONTEXT_MENU_ITEM_NAMES = {
-  root: 'root',
+export const CONTEXT_MENU_SOURCE_ITEMS = {
   [SourcesEnum.twemoji]: SourcesEnum.twemoji,
   [SourcesEnum.noto]: SourcesEnum.noto,
+} as const;
+
+export const CONTEXT_MENU_ITEM_NAMES = {
+  root: 'root',
+  ...CONTEXT_MENU_SOURCE_ITEMS,
 } as const;
 
 export const EMOJI_REGEXP = /(?<=^|[^\p{Emoji_Presentation}\p{Emoji}\p{Emoji_Modifier_Base}\uFE0F\u200D]+)(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base}(?:\u200D)?)+(?=[^\p{Emoji_Presentation}\p{Emoji}\uFE0F\p{Emoji_Modifier_Base}\u200D]+|$)/u;

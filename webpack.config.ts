@@ -18,8 +18,7 @@ const webpackConstructor = (
   const isProd = args.mode === 'production';
 
   return {
-    watch: isDev,
-    devtool: 'inline-source-map',
+    devtool: false,
     optimization: {
       minimize: isProd,
     },
