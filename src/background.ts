@@ -8,7 +8,7 @@ import { updateRootItem } from './background/update-root-item';
 import { updateSourceItemOrder } from './background/update-source-item-order';
 import { CONTEXT_MENU_ITEM_NAMES, CONTEXT_MENU_SOURCE_ITEMS, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
 import { copy, createLink, extractEmoji } from './helpers';
-import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
+import { ContextMenuModesEnum, ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
 
 chrome.runtime.onInstalled.addListener(
   details => {
@@ -18,6 +18,7 @@ chrome.runtime.onInstalled.addListener(
     const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
       'sources',
       'sourcePrioritization',
+      'contextMenuMode',
     ];
     chrome.storage.sync.get(
       requiredStorageKeys,
@@ -27,16 +28,18 @@ chrome.runtime.onInstalled.addListener(
 
         updateSourceItemOrder();
 
+        const updates: Partial<ExtensionStorageInterface> = {};
+
+        if (!result.contextMenuMode) {
+          updates.contextMenuMode = ContextMenuModesEnum.nested;
+        }
+
         const newSources = Object.values(SourcesEnum).filter(
           thisItem => !sources[thisItem],
         );
 
         if (!newSources.length) {
-          return;
-        }
-
-        const updates: Partial<ExtensionStorageInterface> = {
-          sources: {
+          updates.sources = {
             ...sources,
             ...Object.fromEntries(
               newSources.map(
@@ -50,14 +53,19 @@ chrome.runtime.onInstalled.addListener(
                 ],
               ),
             ),
-          },
-          sourcePrioritization: [
+          };
+
+          updates.sourcePrioritization = [
             ...store.sourcePrioritization.filter(
               thisItem => !newSources.includes(thisItem),
             ),
             ...newSources,
-          ],
-        };
+          ];
+        }
+
+        if (!Object.keys(updates).length) {
+          return;
+        }
 
         console.log('Обновление хранилища:', updates);
         chrome.storage.sync.set(updates);

@@ -18,6 +18,7 @@ export interface ExtensionStorageInterface {
     ExtensionStorageSourceItemInterface
   >>;
   sourcePrioritization: Array<SourcesEnum>;
+  contextMenuMode: ContextMenuModesEnum;
 }
 
 export enum ActionsEnum {
@@ -27,4 +28,9 @@ export enum ActionsEnum {
 export enum SourcesEnum {
   twemoji = 'twemoji',
   noto = 'noto',
+}
+
+export enum ContextMenuModesEnum {
+  nested = 'nested',
+  simple = 'simple',
 }
