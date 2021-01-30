@@ -2,6 +2,7 @@ import Sortable from 'sortablejs';
 import { SOURCES } from '../../../constants';
 import { isEnumItem } from '../../../helpers';
 import { ExtensionStorageInterface, SourcesEnum } from '../../../interfaces';
+import { popupStore } from '../store';
 import { CreateSourcePrioritizationItemAttrsEnum, CreateSourcePrioritizationListsEnum, CreateSourcePrioritizationListsInterface } from './interfaces';
 import styles from './source-prioritization.module.scss';
 
@@ -70,7 +71,7 @@ export const createSourcePrioritization = ({
       invertSwap: true,
       animation: 50,
       onUpdate: event => {
-        const updatedOrder: Array<SourcesEnum> = [];
+        const updatedOrder: ExtensionStorageInterface['sourcePrioritization'] = [];
 
         Array.from(event.to.children).forEach(
           thisItem => {
@@ -88,13 +89,28 @@ export const createSourcePrioritization = ({
             }
 
             updatedOrder.push(itemName);
+
+            const sourceItem = popupStore.sources[itemName];
+
+            if (!sourceItem) {
+              return;
+            }
+
+            popupStore.sources[itemName] = {
+              ...sourceItem,
+              isNew: false,
+            };
+
+            thisItem.classList.remove(styles.itemNew);
           },
         );
 
-
         const updates: Partial<ExtensionStorageInterface> = {
           sourcePrioritization: updatedOrder,
+          sources: popupStore.sources,
         };
+
+        popupStore.sourcePrioritization = updatedOrder;
 
         console.log('Обновление приоритетов источников:', updatedOrder);
         chrome.storage.sync.set(updates);

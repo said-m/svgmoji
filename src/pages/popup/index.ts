@@ -1,7 +1,9 @@
+import isEqual from 'lodash.isequal';
 import { ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
 import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
 import { createSourcePrioritization } from './source-prioritization';
+import { popupStore } from './store';
 
 (() => {
   const rootContainer = document.getElementById('root');
@@ -79,16 +81,6 @@ import { createSourcePrioritization } from './source-prioritization';
     'sourcePrioritization',
   ];
 
-  // TODO: в отдельный скоуп
-  const store: Pick<
-    ExtensionStorageInterface,
-    'sources'
-    | 'sourcePrioritization'
-  > = {
-    sources: {},
-    sourcePrioritization: [],
-  };
-
   chrome.storage.sync.get(
     requiredStorageKeys,
     (result: Partial<ExtensionStorageInterface>) => {
@@ -102,14 +94,14 @@ import { createSourcePrioritization } from './source-prioritization';
         result.sources
         || result.sourcePrioritization
       ) {
-        store.sources = result.sources
-          || store.sources;
-        store.sourcePrioritization = result.sourcePrioritization
-          || store.sourcePrioritization;
+        popupStore.sources = result.sources
+          || popupStore.sources;
+        popupStore.sourcePrioritization = result.sourcePrioritization
+          || popupStore.sourcePrioritization;
 
         updateSources({
-          items: store.sources,
-          order: store.sourcePrioritization,
+          items: popupStore.sources,
+          order: popupStore.sourcePrioritization,
         });
       }
     },
@@ -122,25 +114,35 @@ import { createSourcePrioritization } from './source-prioritization';
       const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
         changes?.sourcePrioritization?.newValue;
 
-      if (history) {
+      const shouldUpdate = {
+        history: !!history,
+        sources: sources
+          && !isEqual(sources, popupStore.sources),
+        sourcePrioritization: sourcePrioritization
+          && !isEqual(sourcePrioritization, popupStore.sourcePrioritization),
+      };
+
+      if (shouldUpdate.history) {
         updateHistory({
           items: history,
         });
       }
 
-      if (
-        sources
-        || sourcePrioritization
-      ) {
-        store.sources = sources
-          || store.sources;
-        store.sourcePrioritization = sourcePrioritization
-          || store.sourcePrioritization;
+      if (shouldUpdate.sources) {
+        popupStore.sources = sources;
+      }
 
-        // проверять необходимость обновления
+      if (shouldUpdate.sourcePrioritization) {
+        popupStore.sourcePrioritization = sourcePrioritization;
+      }
+
+      if (
+        shouldUpdate.sources
+        || shouldUpdate.sourcePrioritization
+      ) {
         updateSources({
-          items: store.sources,
-          order: store.sourcePrioritization,
+          items: popupStore.sources,
+          order: popupStore.sourcePrioritization,
         });
       }
     },

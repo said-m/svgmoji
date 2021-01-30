@@ -49,7 +49,9 @@ chrome.runtime.onInstalled.addListener(
             ),
           },
           sourcePrioritization: [
-            ...sourcePrioritization,
+            ...sourcePrioritization.filter(
+              thisItem => !newSources.includes(thisItem),
+            ),
             ...newSources,
           ],
         };
