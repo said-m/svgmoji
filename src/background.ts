@@ -1,11 +1,96 @@
+import isEqual from 'lodash.isequal';
 import { description } from '../package.json';
 import { parseSelection } from './background/parse-selection';
 import { prepareSourceItem } from './background/prepare-source-item';
 import { store } from './background/store';
 import { updateRootItem } from './background/update-root-item';
-import { CONTEXT_MENU_ITEM_NAMES, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
+import { updateSourceItemOrder } from './background/update-source-item-order';
+import { CONTEXT_MENU_ITEM_NAMES, CONTEXT_MENU_SOURCE_ITEMS, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
 import { copy, createLink, extractEmoji, isEnumItem } from './helpers';
-import { SourcesEnum } from './interfaces';
+import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
+
+chrome.runtime.onInstalled.addListener(
+  details => {
+    // const currentVersion = chrome.runtime.getManifest().version;
+    // const previousVersion = details.previousVersion;
+    // const reason = details.reason;
+    const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
+      'sources',
+      'sourcePrioritization',
+    ];
+    chrome.storage.sync.get(
+      requiredStorageKeys,
+      (result: Partial<ExtensionStorageInterface>) => {
+        const sources: ExtensionStorageInterface['sources'] = result.sources || {};
+        store.sourcePrioritization = result.sourcePrioritization || [];
+
+        updateSourceItemOrder();
+
+        const newSources = Object.values(SourcesEnum).filter(
+          thisItem => !sources[thisItem],
+        );
+
+        if (!newSources.length) {
+          return;
+        }
+
+        const updates: Partial<ExtensionStorageInterface> = {
+          sources: {
+            ...sources,
+            ...Object.fromEntries(
+              newSources.map(
+                (thisItem): [SourcesEnum, ExtensionStorageSourceItemInterface] => [
+                  thisItem,
+                  {
+                    type: thisItem,
+                    isNew: true,
+                    isDisabled: false,
+                  },
+                ],
+              ),
+            ),
+          },
+          sourcePrioritization: [
+            ...store.sourcePrioritization.filter(
+              thisItem => !newSources.includes(thisItem),
+            ),
+            ...newSources,
+          ],
+        };
+
+        console.log('Обновление хранилища:', updates);
+        chrome.storage.sync.set(updates);
+      },
+    );
+
+    // switch (reason) {
+    //   case 'install':
+    //       break;
+    //   case 'update':
+    //       break;
+    //   case 'chrome_update':
+    //   case 'shared_module_update':
+    //   default:
+    //       break;
+    // }
+  },
+);
+
+chrome.storage.onChanged.addListener(
+  changes => {
+    const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
+      changes?.sourcePrioritization?.newValue;
+
+    if (
+      sourcePrioritization
+      && !isEqual(sourcePrioritization, store.sourcePrioritization)
+    ) {
+      store.sourcePrioritization = sourcePrioritization;
+
+      updateSourceItemOrder();
+    }
+  },
+);
 
 // Удаление мусора из хранилища
 chrome.tabs.onRemoved.addListener(
@@ -76,10 +161,7 @@ chrome.contextMenus.create({
   visible: false,
 });
 
-[
-  CONTEXT_MENU_ITEM_NAMES.twemoji,
-  CONTEXT_MENU_ITEM_NAMES.noto,
-].forEach(
+Object.values(CONTEXT_MENU_SOURCE_ITEMS).forEach(
   thisItem => chrome.contextMenus.create(
     prepareSourceItem({
       type: thisItem,
