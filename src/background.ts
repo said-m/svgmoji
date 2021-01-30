@@ -1,3 +1,4 @@
+import isEqual from 'lodash.isequal';
 import { description } from '../package.json';
 import { parseSelection } from './background/parse-selection';
 import { prepareSourceItem } from './background/prepare-source-item';
@@ -12,7 +13,6 @@ chrome.runtime.onInstalled.addListener(
     // const currentVersion = chrome.runtime.getManifest().version;
     // const previousVersion = details.previousVersion;
     // const reason = details.reason;
-
     const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
       'sources',
       'sourcePrioritization',
@@ -21,8 +21,7 @@ chrome.runtime.onInstalled.addListener(
       requiredStorageKeys,
       (result: Partial<ExtensionStorageInterface>) => {
         const sources: ExtensionStorageInterface['sources'] = result.sources || {};
-        const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
-          result.sourcePrioritization || [];
+        store.sourcePrioritization = result.sourcePrioritization || [];
 
         const newSources = Object.values(SourcesEnum).filter(
           thisItem => !sources[thisItem],
@@ -49,7 +48,7 @@ chrome.runtime.onInstalled.addListener(
             ),
           },
           sourcePrioritization: [
-            ...sourcePrioritization.filter(
+            ...store.sourcePrioritization.filter(
               thisItem => !newSources.includes(thisItem),
             ),
             ...newSources,
@@ -57,7 +56,6 @@ chrome.runtime.onInstalled.addListener(
         };
 
         console.log('Обновление хранилища:', updates);
-
         chrome.storage.sync.set(updates);
       },
     );
@@ -72,6 +70,20 @@ chrome.runtime.onInstalled.addListener(
     //   default:
     //       break;
     // }
+  },
+);
+
+chrome.storage.onChanged.addListener(
+  changes => {
+    const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
+      changes?.sourcePrioritization?.newValue;
+
+    if (
+      sourcePrioritization
+      && !isEqual(sourcePrioritization, store.sourcePrioritization)
+    ) {
+      store.sourcePrioritization = sourcePrioritization;
+    }
   },
 );
 
