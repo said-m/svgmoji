@@ -27,6 +27,5 @@
     "128": "./assets/images/logo-128.png"
   },
 
-  "offline_enabled": true,
   "incognito": "spanning"
 }
