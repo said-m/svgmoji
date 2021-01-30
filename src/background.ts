@@ -4,7 +4,8 @@ import { parseSelection } from './background/parse-selection';
 import { prepareSourceItem } from './background/prepare-source-item';
 import { store } from './background/store';
 import { updateRootItem } from './background/update-root-item';
-import { CONTEXT_MENU_ITEM_NAMES, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
+import { updateSourceItemOrder } from './background/update-source-item-order';
+import { CONTEXT_MENU_ITEM_NAMES, CONTEXT_MENU_SOURCE_ITEMS, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
 import { copy, createLink, extractEmoji, isEnumItem } from './helpers';
 import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
 
@@ -22,6 +23,8 @@ chrome.runtime.onInstalled.addListener(
       (result: Partial<ExtensionStorageInterface>) => {
         const sources: ExtensionStorageInterface['sources'] = result.sources || {};
         store.sourcePrioritization = result.sourcePrioritization || [];
+
+        updateSourceItemOrder();
 
         const newSources = Object.values(SourcesEnum).filter(
           thisItem => !sources[thisItem],
@@ -83,6 +86,8 @@ chrome.storage.onChanged.addListener(
       && !isEqual(sourcePrioritization, store.sourcePrioritization)
     ) {
       store.sourcePrioritization = sourcePrioritization;
+
+      updateSourceItemOrder();
     }
   },
 );
@@ -156,10 +161,7 @@ chrome.contextMenus.create({
   visible: false,
 });
 
-[
-  CONTEXT_MENU_ITEM_NAMES.twemoji,
-  CONTEXT_MENU_ITEM_NAMES.noto,
-].forEach(
+Object.values(CONTEXT_MENU_SOURCE_ITEMS).forEach(
   thisItem => chrome.contextMenus.create(
     prepareSourceItem({
       type: thisItem,
