@@ -1,4 +1,4 @@
-import { isEnumValue } from '@said-m/common';
+import { getKeys, isEnumValue } from '@said-m/common';
 import isEqual from 'lodash.isequal';
 import { description } from '../package.json';
 import { parseSelection } from './background/parse-selection';
@@ -12,8 +12,8 @@ import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, Sources
 
 chrome.runtime.onInstalled.addListener(
   details => {
-    // const currentVersion = chrome.runtime.getManifest().version;
-    // const previousVersion = details.previousVersion;
+    const currentVersion = chrome.runtime.getManifest().version;
+    const previousVersion = details.previousVersion;
     // const reason = details.reason;
     const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
       'sources',
@@ -36,13 +36,36 @@ chrome.runtime.onInstalled.addListener(
           updates.contextMenuMode = store.contextMenuMode;
         }
 
+        const oldNewSources = getKeys(sources).filter(
+          thisItem => sources[thisItem]?.isNew,
+        );
+
         const newSources = Object.values(SourcesEnum).filter(
           thisItem => !sources[thisItem],
         );
 
-        if (newSources.length) {
+        if (
+          newSources.length
+          || (
+            oldNewSources.length
+            && currentVersion !== previousVersion
+          )
+        ) {
           updates.sources = {
-            ...sources,
+            ...Object.fromEntries(
+              Object.entries(sources).map(
+                ([
+                  thisItemType,
+                  thisItem,
+                ]) => [
+                  thisItemType,
+                  {
+                    ...thisItem,
+                    isNew: false,
+                  },
+                ],
+              ),
+            ),
             ...Object.fromEntries(
               newSources.map(
                 (thisItem): [SourcesEnum, ExtensionStorageSourceItemInterface] => [
@@ -56,7 +79,9 @@ chrome.runtime.onInstalled.addListener(
               ),
             ),
           };
+        }
 
+        if (newSources.length) {
           updates.sourcePrioritization = [
             ...store.sourcePrioritization.filter(
               thisItem => !newSources.includes(thisItem),
