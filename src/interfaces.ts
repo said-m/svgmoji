@@ -28,6 +28,7 @@ export enum ActionsEnum {
 export enum SourcesEnum {
   twemoji = 'twemoji',
   noto = 'noto',
+  openmoji = 'openmoji',
 }
 
 export enum ContextMenuModesEnum {

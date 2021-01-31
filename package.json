@@ -21,7 +21,7 @@
   "scripts": {
     "start": "webpack --mode development --watch",
     "build": "webpack --mode production",
-    "validate": "tsc --noEmit",
+    "validate": "tsc --noEmit --skipLibCheck",
     "lint": "tslint -p tsconfig.json"
   },
   "devDependencies": {

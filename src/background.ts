@@ -40,7 +40,7 @@ chrome.runtime.onInstalled.addListener(
           thisItem => !sources[thisItem],
         );
 
-        if (!newSources.length) {
+        if (newSources.length) {
           updates.sources = {
             ...sources,
             ...Object.fromEntries(
