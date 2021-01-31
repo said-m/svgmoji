@@ -1,5 +1,5 @@
 # Svgmoji 👋
 
-Расширение для браузера 🌐, позволяющее преобразовывать выделенный emoji 🤟 в соответствующую ссылку 🔗 на изображение 🖼 Twemoji 🐤.
+An extension that adds buttons to the context menu, that generate a corresponding link to an image for the emoji in the selection.
 
-> ℹ: больше источников изображений будет добавлено в будущих версиях. стей тюнд 🔜
+> ℹ️ Supported sources: `Twemoji`, `Noto Color Emoji`, `Openmoji`, `Emojione`, `JoyPixels`.
