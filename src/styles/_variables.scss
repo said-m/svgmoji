@@ -21,7 +21,7 @@ $colors: (
 
   --border-radius: 3px;
 
-  [data-theme="dark"] {
+  @media (prefers-color-scheme: dark) {
     --color-background-primary: #{map-get(map-get($colors, element), primary)};
     --color-background-secondary: #{map-get(map-get($colors, element), secondary)};
     --color-background-alternative: #{map-get(map-get($colors, element), alternative)};

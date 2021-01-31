@@ -8,7 +8,22 @@ export const createLink = ({
 }: {
   emoji: string;
   type: SourcesEnum;
-}) => `${SOURCES[type].path}/${SOURCES[type].prefix}${stringToCode({
-  value: emoji,
-  joiner: SOURCES[type].joiner,
-})}${SOURCES[type].postfix}`;
+}) => {
+  const path = SOURCES[type].path;
+  const prefix = SOURCES[type].prefix;
+  const postfix = SOURCES[type].postfix;
+  const transform = SOURCES[type].transform;
+
+  const parsedCode = stringToCode({
+    value: emoji,
+    joiner: SOURCES[type].joiner,
+  });
+
+  const code = transform
+    ? transform({
+      code: parsedCode,
+    })
+    : parsedCode;
+
+  return `${path}/${prefix}${code}${postfix}`;
+};
