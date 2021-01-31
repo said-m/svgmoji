@@ -15,6 +15,7 @@ export const CONTEXT_MENU_SOURCE_ITEMS = {
 
 export const CONTEXT_MENU_ITEM_NAMES = {
   root: 'root',
+  placeholder: 'placeholder',
   ...CONTEXT_MENU_SOURCE_ITEMS,
 } as const;
 
