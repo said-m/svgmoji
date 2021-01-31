@@ -24,6 +24,13 @@ body {
   }
 }
 
+p {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
   line-height: 1em;
@@ -50,6 +57,19 @@ h5, h6 {
 }
 h6 {
   font-size: 10px;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+}
+
+label {
+  &:not(:disabled),
+  :not(:disabled) & {
+    cursor: pointer;
+  }
 }
 
 button {

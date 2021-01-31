@@ -1,5 +1,6 @@
 import isEqual from 'lodash.isequal';
-import { ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
+import { ContextMenuModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
+import { createContextMenuMode } from './context-menu-mode';
 import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
 import { createSourcePrioritization } from './source-prioritization';
@@ -14,18 +15,18 @@ import { popupStore } from './store';
 
   // history
 
-  const historyWrap = document.createElement('div');
-  historyWrap.classList.add(styles.wrap);
+  const historyWrapEl = document.createElement('div');
+  historyWrapEl.classList.add(styles.wrap);
 
   const historyTitleEl = document.createElement('h2');
   historyTitleEl.innerText = 'Recently copied emojis';
-  historyWrap.append(historyTitleEl);
+  historyWrapEl.append(historyTitleEl);
 
   const historyEl = document.createElement('div');
   historyEl.innerText = 'loading...';
-  historyWrap.append(historyEl);
+  historyWrapEl.append(historyEl);
 
-  rootContainer.append(historyWrap);
+  rootContainer.append(historyWrapEl);
 
   const updateHistory = ({
     items,
@@ -43,18 +44,18 @@ import { popupStore } from './store';
 
   // sources
 
-  const sourcesWrap = document.createElement('div');
-  sourcesWrap.classList.add(styles.wrap);
+  const sourcesWrapEl = document.createElement('div');
+  sourcesWrapEl.classList.add(styles.wrap);
 
   const sourcesTitleEl = document.createElement('h2');
   sourcesTitleEl.innerText = 'Sources';
-  sourcesWrap.append(sourcesTitleEl);
+  sourcesWrapEl.append(sourcesTitleEl);
 
   const sourcesEl = document.createElement('div');
   sourcesEl.innerText = 'loading...';
-  sourcesWrap.append(sourcesEl);
+  sourcesWrapEl.append(sourcesEl);
 
-  rootContainer.append(sourcesWrap);
+  rootContainer.append(sourcesWrapEl);
 
   const updateSources = ({
     items,
@@ -73,12 +74,42 @@ import { popupStore } from './store';
     );
   };
 
+  // context menu mode
+
+  const contextMenuModeWrapEl = document.createElement('div');
+  contextMenuModeWrapEl.classList.add(styles.wrap);
+
+  const contextMenuModeTitleEl = document.createElement('h2');
+  contextMenuModeTitleEl.innerText = 'Context menu mode';
+  contextMenuModeWrapEl.append(contextMenuModeTitleEl);
+
+  const contextMenuModeEl = document.createElement('div');
+  contextMenuModeEl.innerText = 'loading...';
+  contextMenuModeWrapEl.append(contextMenuModeEl);
+
+  rootContainer.append(contextMenuModeWrapEl);
+
+  const updateContextMenuMode = ({
+    mode,
+  }: {
+    mode: ContextMenuModesEnum,
+  }) => {
+    contextMenuModeEl.innerText = '';
+
+    contextMenuModeEl.append(
+      createContextMenuMode({
+        mode,
+      }),
+    );
+  };
+
   // loading
 
   const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
     'history',
     'sources',
     'sourcePrioritization',
+    'contextMenuMode',
   ];
 
   chrome.storage.sync.get(
@@ -104,6 +135,12 @@ import { popupStore } from './store';
           order: popupStore.sourcePrioritization,
         });
       }
+
+      if (result.contextMenuMode) {
+        updateContextMenuMode({
+          mode: result.contextMenuMode,
+        });
+      }
     },
   );
 
@@ -113,6 +150,8 @@ import { popupStore } from './store';
       const sources: ExtensionStorageInterface['sources'] = changes?.sources?.newValue;
       const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
         changes?.sourcePrioritization?.newValue;
+      const contextMenuMode: ExtensionStorageInterface['contextMenuMode'] =
+        changes?.contextMenuMode?.newValue;
 
       const shouldUpdate = {
         history: !!history,
@@ -120,6 +159,8 @@ import { popupStore } from './store';
           && !isEqual(sources, popupStore.sources),
         sourcePrioritization: sourcePrioritization
           && !isEqual(sourcePrioritization, popupStore.sourcePrioritization),
+        contextMenuMode: contextMenuMode
+          && !isEqual(contextMenuMode, popupStore.contextMenuMode),
       };
 
       if (shouldUpdate.history) {
@@ -143,6 +184,14 @@ import { popupStore } from './store';
         updateSources({
           items: popupStore.sources,
           order: popupStore.sourcePrioritization,
+        });
+      }
+
+      if (shouldUpdate.contextMenuMode) {
+        popupStore.contextMenuMode = contextMenuMode;
+
+        updateContextMenuMode({
+          mode: popupStore.contextMenuMode,
         });
       }
     },
