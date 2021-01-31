@@ -16,6 +16,7 @@ export const CONTEXT_MENU_SOURCE_ITEMS: Record<
   [SourcesEnum.noto]: SourcesEnum.noto,
   [SourcesEnum.openmoji]: SourcesEnum.openmoji,
   [SourcesEnum.emojione]: SourcesEnum.emojione,
+  [SourcesEnum.joypixels]: SourcesEnum.joypixels,
 } as const;
 
 export const CONTEXT_MENU_ITEM_NAMES = {
@@ -73,6 +74,13 @@ export const SOURCES: {
     transform: ({
       code,
     }) => code.toUpperCase(),
+  },
+  [SourcesEnum.joypixels]: {
+    title: 'JoyPixels (.png)',
+    path: 'https://raw.githubusercontent.com/joypixels/emoji-assets/master/png/128/',
+    joiner: '-',
+    prefix: '',
+    postfix: '.png',
   },
 };
 
