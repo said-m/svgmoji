@@ -8,10 +8,14 @@ export const PROJECT_INFO = {
   description: packageJson.description,
 };
 
-export const CONTEXT_MENU_SOURCE_ITEMS = {
+export const CONTEXT_MENU_SOURCE_ITEMS: Record<
+  SourcesEnum,
+  SourcesEnum
+> = {
   [SourcesEnum.twemoji]: SourcesEnum.twemoji,
   [SourcesEnum.noto]: SourcesEnum.noto,
   [SourcesEnum.openmoji]: SourcesEnum.openmoji,
+  [SourcesEnum.emojione]: SourcesEnum.emojione,
 } as const;
 
 export const CONTEXT_MENU_ITEM_NAMES = {
@@ -53,6 +57,16 @@ export const SOURCES: {
   [SourcesEnum.openmoji]: {
     title: 'Openmoji',
     path: 'https://raw.githubusercontent.com/hfg-gmuend/openmoji/master/color/svg',
+    joiner: '-',
+    prefix: '',
+    postfix: '.svg',
+    transform: ({
+      code,
+    }) => code.toUpperCase(),
+  },
+  [SourcesEnum.emojione]: {
+    title: 'Emojione',
+    path: 'https://raw.githubusercontent.com/joypixels/emojione-legacy/master/svg',
     joiner: '-',
     prefix: '',
     postfix: '.svg',
