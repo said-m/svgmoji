@@ -2,13 +2,13 @@ import { isEnumValue } from '@said-m/common';
 import isEqual from 'lodash.isequal';
 import { description } from '../package.json';
 import { parseSelection } from './background/parse-selection';
-import { prepareSourceItem } from './background/prepare-source-item';
+import { actionOnClick, prepareSourceItem } from './background/prepare-source-item';
 import { store } from './background/store';
 import { updateRootItem } from './background/update-root-item';
 import { updateSourceItemOrder } from './background/update-source-item-order';
 import { CONTEXT_MENU_ITEM_NAMES, CONTEXT_MENU_SOURCE_ITEMS, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
 import { copy, createLink, extractEmoji } from './helpers';
-import { ContextMenuModesEnum, ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
+import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
 
 chrome.runtime.onInstalled.addListener(
   details => {
@@ -25,13 +25,15 @@ chrome.runtime.onInstalled.addListener(
       (result: Partial<ExtensionStorageInterface>) => {
         const sources: ExtensionStorageInterface['sources'] = result.sources || {};
         store.sourcePrioritization = result.sourcePrioritization || [];
+        store.contextMenuMode = result.contextMenuMode
+          || store.contextMenuMode;
 
         updateSourceItemOrder();
 
         const updates: Partial<ExtensionStorageInterface> = {};
 
         if (!result.contextMenuMode) {
-          updates.contextMenuMode = ContextMenuModesEnum.nested;
+          updates.contextMenuMode = store.contextMenuMode;
         }
 
         const newSources = Object.values(SourcesEnum).filter(
@@ -89,12 +91,23 @@ chrome.storage.onChanged.addListener(
   changes => {
     const sourcePrioritization: ExtensionStorageInterface['sourcePrioritization'] =
       changes?.sourcePrioritization?.newValue;
+    const contextMenuMode: ExtensionStorageInterface['contextMenuMode'] =
+      changes?.contextMenuMode?.newValue;
 
     if (
       sourcePrioritization
       && !isEqual(sourcePrioritization, store.sourcePrioritization)
     ) {
       store.sourcePrioritization = sourcePrioritization;
+
+      updateSourceItemOrder();
+    }
+
+    if (
+      contextMenuMode
+      && !isEqual(contextMenuMode, store.contextMenuMode)
+    ) {
+      store.contextMenuMode = contextMenuMode;
 
       updateSourceItemOrder();
     }
@@ -162,12 +175,31 @@ chrome.notifications.onClicked.addListener(
   },
 );
 
+// использую, чтобы закидывать ненужные вложенные пункты
+chrome.contextMenus.create({
+  id: CONTEXT_MENU_ITEM_NAMES.placeholder,
+  title: `${PROJECT_INFO.name} - ${description}`,
+  visible: false,
+  enabled: false,
+});
 
 chrome.contextMenus.create({
   id: CONTEXT_MENU_ITEM_NAMES.root,
   title: `${PROJECT_INFO.name} - ${description}`,
   contexts: ['selection'],
   visible: false,
+  onclick: (item, tab) => {
+    const tabId = tab?.id;
+
+    if (!tabId) {
+      return;
+    }
+
+    actionOnClick({
+      type: store.sourcePrioritization[0],
+      tabId,
+    });
+  },
 });
 
 Object.values(CONTEXT_MENU_SOURCE_ITEMS).forEach(
