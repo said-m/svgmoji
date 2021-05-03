@@ -1,7 +1,7 @@
 import { isPlainObject } from '@said-m/common';
 import { HISTORY_LENGTH, SOURCES } from '../constants';
 import { copy, notify } from '../helpers';
-import { ExtensionStorageHistoryItemInterface, ExtensionStorageInterface, SourcesEnum } from '../interfaces';
+import { CopyModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface, SourcesEnum } from '../interfaces';
 import favicon from '../static/favicon.ico';
 import { findAsset } from './find-asset';
 import { store } from './store';
@@ -27,6 +27,8 @@ export const actionOnClick = ({
     return;
   }
 
+  const isAsImage = store.copyMode === CopyModesEnum.image;
+
   findAsset({
     emoji,
     type,
@@ -40,13 +42,22 @@ export const actionOnClick = ({
     }) => {
       copy({
         value: link,
-      });
-      notify({
-        id: notificationId,
-        icon: link,
-        title: `Link saved to clipboard`,
-        message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as a link to image!`,
-      });
+        asImage: isAsImage,
+        isPage: false,
+      }).then(
+        () => notify({
+          id: notificationId,
+          icon: link,
+          title: `${isAsImage ? 'Image' : 'Link'} saved to clipboard`,
+          message: `Now you can paste ${emoji ? `"${emoji}"` : 'emoji'} as ${isAsImage ? 'an' : 'a link to'} image!`,
+        }),
+      ).catch(
+        (error) => notify({
+          title: 'Ошибка обработки',
+          message: error,
+          icon: '',
+        }),
+      );
 
       const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
         'history',

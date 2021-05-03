@@ -19,6 +19,7 @@ export interface ExtensionStorageInterface {
   >>;
   sourcePrioritization: Array<SourcesEnum>;
   contextMenuMode: ContextMenuModesEnum;
+  copyMode: CopyModesEnum;
 }
 
 export enum ActionsEnum {
@@ -36,4 +37,9 @@ export enum SourcesEnum {
 export enum ContextMenuModesEnum {
   nested = 'nested',
   simple = 'simple',
+}
+
+export enum CopyModesEnum {
+  link = 'link',
+  image = 'image',
 }

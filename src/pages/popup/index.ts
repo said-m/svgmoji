@@ -1,6 +1,7 @@
 import isEqual from 'lodash.isequal';
-import { ContextMenuModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
+import { ContextMenuModesEnum, CopyModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
 import { createContextMenuMode } from './context-menu-mode';
+import { createCopyMode } from './copy-mode';
 import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
 import { createSourcePrioritization } from './source-prioritization';
@@ -103,6 +104,35 @@ import { popupStore } from './store';
     );
   };
 
+  // context menu mode
+
+  const copyModeWrapEl = document.createElement('div');
+  copyModeWrapEl.classList.add(styles.wrap);
+
+  const copyModeTitleEl = document.createElement('h2');
+  copyModeTitleEl.innerText = 'Copy mode';
+  copyModeWrapEl.append(copyModeTitleEl);
+
+  const copyModeEl = document.createElement('div');
+  copyModeEl.innerText = 'loading...';
+  copyModeWrapEl.append(copyModeEl);
+
+  rootContainer.append(copyModeWrapEl);
+
+  const updateCopyMode = ({
+    mode,
+  }: {
+    mode: CopyModesEnum,
+  }) => {
+    copyModeEl.innerText = '';
+
+    copyModeEl.append(
+      createCopyMode({
+        mode,
+      }),
+    );
+  };
+
   // loading
 
   const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
@@ -110,6 +140,7 @@ import { popupStore } from './store';
     'sources',
     'sourcePrioritization',
     'contextMenuMode',
+    'copyMode',
   ];
 
   chrome.storage.sync.get(
@@ -137,8 +168,20 @@ import { popupStore } from './store';
       }
 
       if (result.contextMenuMode) {
+        popupStore.contextMenuMode = result.contextMenuMode
+          || popupStore.contextMenuMode;
+
         updateContextMenuMode({
           mode: result.contextMenuMode,
+        });
+      }
+
+      if (result.copyMode) {
+        popupStore.copyMode = result.copyMode
+          || popupStore.copyMode;
+
+        updateCopyMode({
+          mode: result.copyMode,
         });
       }
     },
@@ -152,6 +195,8 @@ import { popupStore } from './store';
         changes?.sourcePrioritization?.newValue;
       const contextMenuMode: ExtensionStorageInterface['contextMenuMode'] =
         changes?.contextMenuMode?.newValue;
+      const copyMode: ExtensionStorageInterface['copyMode'] =
+        changes?.copyMode?.newValue;
 
       const shouldUpdate = {
         history: !!history,
@@ -161,6 +206,8 @@ import { popupStore } from './store';
           && !isEqual(sourcePrioritization, popupStore.sourcePrioritization),
         contextMenuMode: contextMenuMode
           && !isEqual(contextMenuMode, popupStore.contextMenuMode),
+        copyMode: copyMode
+          && !isEqual(copyMode, popupStore.copyMode),
       };
 
       if (shouldUpdate.history) {
@@ -192,6 +239,14 @@ import { popupStore } from './store';
 
         updateContextMenuMode({
           mode: popupStore.contextMenuMode,
+        });
+      }
+
+      if (shouldUpdate.copyMode) {
+        popupStore.copyMode = copyMode;
+
+        updateCopyMode({
+          mode: popupStore.copyMode,
         });
       }
     },

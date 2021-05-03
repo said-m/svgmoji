@@ -7,8 +7,8 @@ import { store } from './background/store';
 import { updateRootItem } from './background/update-root-item';
 import { updateSourceItemOrder } from './background/update-source-item-order';
 import { CONTEXT_MENU_ITEM_NAMES, CONTEXT_MENU_SOURCE_ITEMS, NOTIFICATION_TYPE_ID_JOINER, PROJECT_INFO } from './constants';
-import { copy, createLink, extractEmoji } from './helpers';
-import { ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
+import { copy, createLink, extractEmoji, notify } from './helpers';
+import { CopyModesEnum, ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
 
 chrome.runtime.onInstalled.addListener(
   details => {
@@ -19,6 +19,7 @@ chrome.runtime.onInstalled.addListener(
       'sources',
       'sourcePrioritization',
       'contextMenuMode',
+      'copyMode',
     ];
     chrome.storage.sync.get(
       requiredStorageKeys,
@@ -27,6 +28,8 @@ chrome.runtime.onInstalled.addListener(
         store.sourcePrioritization = result.sourcePrioritization || [];
         store.contextMenuMode = result.contextMenuMode
           || store.contextMenuMode;
+        store.copyMode = result.copyMode
+          || store.copyMode;
 
         updateSourceItemOrder();
 
@@ -34,6 +37,10 @@ chrome.runtime.onInstalled.addListener(
 
         if (!result.contextMenuMode) {
           updates.contextMenuMode = store.contextMenuMode;
+        }
+
+        if (!result.copyMode) {
+          updates.copyMode = store.copyMode;
         }
 
         const oldNewSources = getKeys(sources).filter(
@@ -118,6 +125,8 @@ chrome.storage.onChanged.addListener(
       changes?.sourcePrioritization?.newValue;
     const contextMenuMode: ExtensionStorageInterface['contextMenuMode'] =
       changes?.contextMenuMode?.newValue;
+    const copyMode: ExtensionStorageInterface['copyMode'] =
+      changes?.copyMode?.newValue;
 
     if (
       sourcePrioritization
@@ -135,6 +144,13 @@ chrome.storage.onChanged.addListener(
       store.contextMenuMode = contextMenuMode;
 
       updateSourceItemOrder();
+    }
+
+    if (
+      copyMode
+      && !isEqual(copyMode, store.copyMode)
+    ) {
+      store.copyMode = copyMode;
     }
   },
 );
@@ -158,22 +174,24 @@ chrome.tabs.onActivated.addListener(
 
 // Трекинг выделяемого содержимого
 chrome.runtime.onMessage.addListener(
-  (request, sender) => {
-    const tabId = sender.tab?.id;
+  (message, sender) => {
+    if (message.name === 'selectionChange') {
+      const tabId = sender.tab?.id;
 
-    // Без привязки выделения к вкладке - работать не вариант
-    if (!tabId) {
-      return;
+      // Без привязки выделения к вкладке - работать не вариант
+      if (!tabId) {
+        return;
+      }
+
+      const value = message?.value;
+
+      parseSelection({
+        tabId,
+        value: typeof value === 'string'
+          ? value
+          : '',
+      });
     }
-
-    const value = request?.value;
-
-    parseSelection({
-      tabId,
-      value: typeof value === 'string'
-        ? value
-        : '',
-    });
   },
 );
 
@@ -196,7 +214,15 @@ chrome.notifications.onClicked.addListener(
         emoji,
         type,
       }),
-    });
+      asImage: store.copyMode === CopyModesEnum.image,
+      isPage: false,
+    }).catch(
+      (error) => notify({
+        title: 'Ошибка обработки',
+        message: error,
+        icon: '',
+      }),
+    );
   },
 );
 
