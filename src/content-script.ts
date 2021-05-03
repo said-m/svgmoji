@@ -1,4 +1,4 @@
-import { copyImage, getPngFromSvg } from './helpers';
+import { copyImage } from './helpers';
 
 document.addEventListener(
   'selectionchange',

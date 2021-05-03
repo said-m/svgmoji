@@ -1,14 +1,14 @@
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
+import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import { resolve } from 'path';
 import { Configuration, ProgressPlugin } from 'webpack';
 import ExtensionReloaderPlugin from 'webpack-extension-reloader';
 import ZipPlugin from 'zip-webpack-plugin';
 import { PROJECT_INFO } from './src/constants';
 import { BUILD_PATH } from './webpack/constants';
-import { getHtmlPlugin } from './webpack/helpers';
+import { getHtmlPlugin, getScriptRules } from './webpack/helpers';
 import { getPagePath, getPath } from './webpack/helpers/get-path';
-import { fontRules, htmlRules, imageRules, sassModuleRules, sassRules, staticRules, tsRules } from './webpack/rules';
+import { fontRules, htmlRules, imageRules, sassModuleRules, sassRules } from './webpack/rules';
 
 const webpackConstructor = (
   environments: Record<string, unknown>,
@@ -17,10 +17,16 @@ const webpackConstructor = (
   const isDev = args.mode === 'development';
   const isProd = args.mode === 'production';
 
+  const mode = typeof args.mode === 'string'
+    ? args.mode
+    : 'production';
+
   return {
     devtool: false,
-    optimization: {
-      minimize: isProd,
+    watchOptions: {
+      poll: true,
+      aggregateTimeout: 100,
+      ignored: /node_modules/
     },
     entry: {
       background: getPath('background'),
@@ -38,14 +44,20 @@ const webpackConstructor = (
 
         return '[name]/[name].js';
       },
+      assetModuleFilename: 'assets/[name][ext]',
+      clean: true,
+    },
+    optimization: {
+      minimize: isProd,
     },
     module: {
       rules: [
-        tsRules,
+        ...getScriptRules({
+          mode,
+        }),
         sassRules,
         sassModuleRules,
         imageRules,
-        staticRules,
         fontRules,
         htmlRules,
       ],
@@ -55,9 +67,7 @@ const webpackConstructor = (
     },
     plugins: [
       // Сборка
-      new CleanWebpackPlugin({
-        cleanStaleWebpackAssets: false,
-      }),
+
       new ProgressPlugin({}),
 
       new CopyPlugin({
@@ -86,28 +96,37 @@ const webpackConstructor = (
       }),
 
       // Страницы
+
       getHtmlPlugin({
         page: 'popup',
       }),
 
-      // @ts-ignore
-      new ExtensionReloaderPlugin({
-        port: 8080,
-        reloadPage: true,
-        entries: {
-          background: 'background',
-          contentScripts: ['content-script'],
-          extensionPage: ['popup'],
-        },
-      }),
+      // Хэлперы
+
+      ...(isDev
+        ? [new ForkTsCheckerWebpackPlugin()]
+        : []
+      ),
+
+      ...(isDev
+        // @ts-ignore
+        ? [new ExtensionReloaderPlugin({
+          port: 8080,
+          reloadPage: true,
+          entries: {
+            background: 'background',
+            contentScripts: ['content-script'],
+            extensionPage: ['popup'],
+          },
+        })]
+        : []
+      ),
 
       // @ts-ignore
       ...(isProd
-          ? [
-            new ZipPlugin({
+          ? [new ZipPlugin({
               filename: `${PROJECT_INFO.name}-${PROJECT_INFO.version}.zip`,
-            }),
-          ]
+          })]
           : []
       ),
     ],

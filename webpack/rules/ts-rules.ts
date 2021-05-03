@@ -5,4 +5,7 @@ export const tsRules: RuleSetRule = {
   test: TS_REGEX,
   exclude: /node_modules/,
   loader: 'ts-loader',
+  options: {
+    transpileOnly: false,
+  },
 };
