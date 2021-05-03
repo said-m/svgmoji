@@ -1,6 +1,7 @@
 import { isPlainObject } from '@said-m/common';
 import { copy } from '../../../helpers';
-import { ExtensionStorageHistoryItemInterface } from '../../../interfaces';
+import { CopyModesEnum, ExtensionStorageHistoryItemInterface } from '../../../interfaces';
+import { popupStore } from '../store';
 import styles from './history-list.module.scss';
 
 export const createHistoryList = ({
@@ -29,7 +30,11 @@ export const createHistoryList = ({
         itemEl.onclick = () => {
           copy({
             value: thisItem.link,
-          });
+            // TODO:
+            // asImage: popupStore.copyMode === CopyModesEnum.image,
+          }).catch(
+            (error) => console.error(error),
+          );
         };
 
         return itemEl;

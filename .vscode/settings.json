@@ -9,7 +9,7 @@
   "typescript.preferences.quoteStyle": "single",
   "typescript.preferences.importModuleSpecifier": "relative",
   "editor.codeActionsOnSave": {
-    "source.organizeImports": true
+    "source.organizeImports": false,
   },
   "editor.fontSize": 17,
 }
