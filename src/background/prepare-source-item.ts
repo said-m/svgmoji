@@ -43,6 +43,7 @@ export const actionOnClick = ({
       copy({
         value: link,
         asImage: isAsImage,
+        isPage: false,
       }).then(
         () => notify({
           id: notificationId,

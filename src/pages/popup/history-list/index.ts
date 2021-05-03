@@ -30,10 +30,9 @@ export const createHistoryList = ({
         itemEl.onclick = () => {
           copy({
             value: thisItem.link,
-            // TODO:
-            // asImage: popupStore.copyMode === CopyModesEnum.image,
+            asImage: popupStore.copyMode === CopyModesEnum.image,
           }).catch(
-            (error) => console.error(error),
+            (error) => console.error(`Ошибка при копировании в буфер обмена: ${error}`),
           );
         };
 

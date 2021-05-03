@@ -1,4 +1,4 @@
-import { getPngFromSvg } from './helpers';
+import { copyImage, getPngFromSvg } from './helpers';
 
 document.addEventListener(
   'selectionchange',
@@ -17,32 +17,12 @@ chrome.runtime.onMessage.addListener(
       && message.name === 'copyImage'
       && typeof message.url === 'string'
     ) {
-      if (
-        !('write' in navigator.clipboard)
-        // @ts-ignore
-        || ClipboardItem === undefined
-      ) {
-        sendResponse({
-          error: new Error('Браузер не поддерживает функционал копирования в буфер изображений'),
-        });
-      }
-
-      getPngFromSvg({
+      copyImage({
         url: message.url,
       }).then(
-        async ({ data: pngBlob }) => {
-          // @ts-ignore
-          await navigator.clipboard.write([
-            // @ts-ignore
-            new ClipboardItem({
-              [pngBlob.type]: pngBlob,
-            }),
-          ]);
-
-          sendResponse({
-            data: pngBlob,
-          });
-        },
+        (imageBlob) => sendResponse({
+          data: imageBlob,
+        }),
       ).catch(
         error => sendResponse({
           error,

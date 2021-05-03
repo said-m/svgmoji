@@ -215,6 +215,7 @@ chrome.notifications.onClicked.addListener(
         type,
       }),
       asImage: store.copyMode === CopyModesEnum.image,
+      isPage: false,
     }).catch(
       (error) => notify({
         title: 'Ошибка обработки',
