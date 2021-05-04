@@ -7,6 +7,8 @@
     "CoenraadS.bracket-pair-colorizer",
     "mhutchie.git-graph",
     "ms-vscode.vscode-typescript-tslint-plugin",
+    "syler.sass-indented",
+    "svelte.svelte-vscode",
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": [

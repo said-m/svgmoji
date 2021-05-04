@@ -6,6 +6,7 @@ import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
 import { createSourcePrioritization } from './source-prioritization';
 import { popupStore } from './store';
+import Hello from './hello.svelte';
 
 (() => {
   const rootContainer = document.getElementById('root');
@@ -13,6 +14,20 @@ import { popupStore } from './store';
   if (!rootContainer) {
     return console.error('Не найден элемент для вставки содержимого страницы');
   }
+
+  // history
+
+  const svelteEl = document.createElement('div');
+  svelteEl.classList.add(styles.wrap);
+
+  rootContainer.append(svelteEl);
+
+  new Hello({
+    target: svelteEl,
+    props: {
+      name: 'there',
+    },
+  });
 
   // history
 
