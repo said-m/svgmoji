@@ -1,11 +1,11 @@
 import isEqual from 'lodash.isequal';
 import { ContextMenuModesEnum, CopyModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
-import { createContextMenuMode } from './context-menu-mode';
 import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
 import { createSourcePrioritization } from './source-prioritization';
 import { popupStore } from './store';
 import CopyMode from './copy-mode.svelte';
+import ContextMenuMode from './context-menu-mode.svelte';
 
 (() => {
   const rootContainer = document.getElementById('root');
@@ -79,29 +79,32 @@ import CopyMode from './copy-mode.svelte';
 
   const contextMenuModeWrapEl = document.createElement('div');
   contextMenuModeWrapEl.classList.add(styles.wrap);
-
-  const contextMenuModeTitleEl = document.createElement('h2');
-  contextMenuModeTitleEl.innerText = 'Context menu mode';
-  contextMenuModeWrapEl.append(contextMenuModeTitleEl);
-
-  const contextMenuModeEl = document.createElement('div');
-  contextMenuModeEl.innerText = 'loading...';
-  contextMenuModeWrapEl.append(contextMenuModeEl);
-
+  contextMenuModeWrapEl.innerText = 'loading...';
   rootContainer.append(contextMenuModeWrapEl);
+
+  let contextMenuMode: typeof ContextMenuMode;
 
   const updateContextMenuMode = ({
     mode,
   }: {
     mode: ContextMenuModesEnum,
   }) => {
-    contextMenuModeEl.innerText = '';
+    if (!contextMenuMode) {
+      contextMenuModeWrapEl.innerHTML = '';
 
-    contextMenuModeEl.append(
-      createContextMenuMode({
-        mode,
-      }),
-    );
+      contextMenuMode = new ContextMenuMode({
+        target: contextMenuModeWrapEl,
+        props: {
+          mode,
+        },
+      });
+
+      return;
+    }
+
+    contextMenuMode.$set({
+      mode,
+    });
   };
 
   // copy mode

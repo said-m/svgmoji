@@ -10,6 +10,7 @@
     type="radio"
     bind:group
     value={value}
+    on:change
   />
   <slot />
 </label>
