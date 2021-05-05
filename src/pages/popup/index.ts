@@ -1,12 +1,11 @@
 import isEqual from 'lodash.isequal';
 import { ContextMenuModesEnum, CopyModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
 import { createContextMenuMode } from './context-menu-mode';
-import { createCopyMode } from './copy-mode';
 import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
 import { createSourcePrioritization } from './source-prioritization';
 import { popupStore } from './store';
-import Hello from './hello.svelte';
+import CopyMode from './copy-mode.svelte';
 
 (() => {
   const rootContainer = document.getElementById('root');
@@ -14,20 +13,6 @@ import Hello from './hello.svelte';
   if (!rootContainer) {
     return console.error('Не найден элемент для вставки содержимого страницы');
   }
-
-  // history
-
-  const svelteEl = document.createElement('div');
-  svelteEl.classList.add(styles.wrap);
-
-  rootContainer.append(svelteEl);
-
-  new Hello({
-    target: svelteEl,
-    props: {
-      name: 'there',
-    },
-  });
 
   // history
 
@@ -119,33 +104,36 @@ import Hello from './hello.svelte';
     );
   };
 
-  // context menu mode
+  // copy mode
 
   const copyModeWrapEl = document.createElement('div');
   copyModeWrapEl.classList.add(styles.wrap);
-
-  const copyModeTitleEl = document.createElement('h2');
-  copyModeTitleEl.innerText = 'Copy mode';
-  copyModeWrapEl.append(copyModeTitleEl);
-
-  const copyModeEl = document.createElement('div');
-  copyModeEl.innerText = 'loading...';
-  copyModeWrapEl.append(copyModeEl);
-
+  copyModeWrapEl.innerHTML = 'loading...';
   rootContainer.append(copyModeWrapEl);
+
+  let copyMode: typeof CopyMode;
 
   const updateCopyMode = ({
     mode,
   }: {
     mode: CopyModesEnum,
   }) => {
-    copyModeEl.innerText = '';
+    if (!copyMode) {
+      copyModeWrapEl.innerHTML = '';
 
-    copyModeEl.append(
-      createCopyMode({
-        mode,
-      }),
-    );
+      copyMode = new CopyMode({
+        target: copyModeWrapEl,
+        props: {
+          mode,
+        },
+      });
+
+      return;
+    }
+
+    copyMode.$set({
+      mode,
+    });
   };
 
   // loading
