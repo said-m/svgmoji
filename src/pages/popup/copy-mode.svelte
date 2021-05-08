@@ -17,18 +17,18 @@
   }
 </script>
 
-<style>
+<style lang="scss">
   .component {
     display: flex;
     flex-direction: column;
     gap: 7px;
-  }
 
-  .component > :global(.option) {
-    display: flex;
-    flex-direction: row;
-    gap: 7px;
-    align-items: baseline;
+    > :global(.option) {
+      display: flex;
+      flex-direction: row;
+      gap: 7px;
+      align-items: baseline;
+    }
   }
 </style>
 
