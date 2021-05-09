@@ -2,10 +2,10 @@ import isEqual from 'lodash.isequal';
 import { ContextMenuModesEnum, CopyModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
 import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
-import { createSourcePrioritization } from './source-prioritization';
 import { popupStore } from './store';
 import CopyMode from './copy-mode.svelte';
 import ContextMenuMode from './context-menu-mode.svelte';
+import SourcePrioritization from './source-prioritization.svelte';
 
 (() => {
   const rootContainer = document.getElementById('root');
@@ -47,16 +47,10 @@ import ContextMenuMode from './context-menu-mode.svelte';
 
   const sourcesWrapEl = document.createElement('div');
   sourcesWrapEl.classList.add(styles.wrap);
-
-  const sourcesTitleEl = document.createElement('h2');
-  sourcesTitleEl.innerText = 'Sources';
-  sourcesWrapEl.append(sourcesTitleEl);
-
-  const sourcesEl = document.createElement('div');
-  sourcesEl.innerText = 'loading...';
-  sourcesWrapEl.append(sourcesEl);
-
+  sourcesWrapEl.innerText = 'loading...';
   rootContainer.append(sourcesWrapEl);
+
+  let sourcePrioritization: typeof SourcePrioritization;
 
   const updateSources = ({
     items,
@@ -65,14 +59,24 @@ import ContextMenuMode from './context-menu-mode.svelte';
     items: ExtensionStorageInterface['sources'],
     order: ExtensionStorageInterface['sourcePrioritization'],
   }) => {
-    sourcesEl.innerText = '';
+    if (!sourcePrioritization) {
+      sourcesWrapEl.innerHTML = '';
 
-    sourcesEl.append(
-      createSourcePrioritization({
-        items,
-        order,
-      }),
-    );
+      sourcePrioritization = new SourcePrioritization({
+        target: sourcesWrapEl,
+        props: {
+          items,
+          order,
+        },
+      });
+
+      return;
+    }
+
+    sourcePrioritization.$set({
+      items,
+      order,
+    });
   };
 
   // context menu mode
