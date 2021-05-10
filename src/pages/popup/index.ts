@@ -1,11 +1,11 @@
 import isEqual from 'lodash.isequal';
 import { ContextMenuModesEnum, CopyModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
-import { createHistoryList } from './history-list';
 import styles from './popup.module.scss';
 import { popupStore } from './store';
 import CopyMode from './copy-mode.svelte';
 import ContextMenuMode from './context-menu-mode.svelte';
 import SourcePrioritization from './source-prioritization.svelte';
+import HistoryList from './history-list.svelte';
 
 (() => {
   const rootContainer = document.getElementById('root');
@@ -18,29 +18,32 @@ import SourcePrioritization from './source-prioritization.svelte';
 
   const historyWrapEl = document.createElement('div');
   historyWrapEl.classList.add(styles.wrap);
-
-  const historyTitleEl = document.createElement('h2');
-  historyTitleEl.innerText = 'Recently copied emojis';
-  historyWrapEl.append(historyTitleEl);
-
-  const historyEl = document.createElement('div');
-  historyEl.innerText = 'loading...';
-  historyWrapEl.append(historyEl);
-
+  historyWrapEl.innerText = 'loading...';
   rootContainer.append(historyWrapEl);
+
+  let historyList: typeof HistoryList;
 
   const updateHistory = ({
     items,
   }: {
     items: Array<ExtensionStorageHistoryItemInterface>,
   }) => {
-    historyEl.innerText = '';
+    if (!historyList) {
+      historyWrapEl.innerHTML = '';
 
-    historyEl.append(
-      createHistoryList({
-        items,
-      }),
-    );
+      historyList = new HistoryList({
+        target: historyWrapEl,
+        props: {
+          items,
+        },
+      });
+
+      return;
+    }
+
+    historyList.$set({
+      items,
+    });
   };
 
   // sources
