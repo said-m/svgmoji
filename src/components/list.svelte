@@ -52,3 +52,15 @@
     </li>
   {/each}
 </ol>
+
+<style lang="scss">
+  .item {
+    &:global(#dnd-action-dragged-el) {
+      opacity: 0.3 !important;
+    }
+
+    &:global([data-is-dnd-shadow-item]) {
+      visibility: visible !important;
+    }
+  }
+</style>

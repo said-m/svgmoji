@@ -155,6 +155,10 @@
     opacity: 0.1;
     transition-property: opacity;
 
+    :global([data-is-dnd-shadow-item]) & {
+      opacity: 0.3;
+    }
+
     :global(#dnd-action-dragged-el) & {
       opacity: 0;
     }
