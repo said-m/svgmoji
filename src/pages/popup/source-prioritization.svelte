@@ -1,83 +1,127 @@
-<!-- TODO: sortable -->
-
 <script>
   import { SourcePrioritizationListTypesEnum } from './constants';
   import { SOURCES } from '../../constants';
+  import { TRIGGERS } from 'svelte-dnd-action';
+  import List from '../../components/list.svelte';
 
   export let items;
   export let order;
 
-  const lists = {
-    [SourcePrioritizationListTypesEnum.enabled]: [],
-    [SourcePrioritizationListTypesEnum.disabled]: [],
-  };
+  const listGroup = 'sources';
 
-  $: if (order) {
-    order.forEach(
-      thisItemName => {
-        const item = items[thisItemName];
+  $: lists = order.reduce(
+    (previous, thisItemName) => {
+      const item = items[thisItemName];
 
-        if (!item) {
-          return;
-        }
+      if (!item) {
+        return previous;
+      }
 
-        const itemList = item.isDisabled
-          ? SourcePrioritizationListTypesEnum.disabled
-          : SourcePrioritizationListTypesEnum.enabled;
+      const itemList = item.isDisabled
+        ? SourcePrioritizationListTypesEnum.disabled
+        : SourcePrioritizationListTypesEnum.enabled;
 
-        lists[itemList] = [
-          ...lists[itemList],
-          item,
-        ];
-      },
+      previous[itemList].push({
+        id: item.type,
+        ...item,
+      });
+
+      return previous;
+    },
+    {
+      [SourcePrioritizationListTypesEnum.enabled]: [],
+      [SourcePrioritizationListTypesEnum.disabled]: [],
+    },
+  );
+
+  function onChange({
+    id,
+    name,
+    trigger,
+    newItems,
+  }) {
+    if (trigger !== TRIGGERS.DROPPED_INTO_ZONE) {
+      return;
+    }
+
+    Object.keys(items).forEach(
+      thisItemName => items[thisItemName].isNew = false,
     );
-  }
+    items[id].isDisabled = name === SourcePrioritizationListTypesEnum.disabled;
 
-  // TODO:
-  function onChange() {
+    order = [
+      ...(name === SourcePrioritizationListTypesEnum.enabled
+        ? newItems
+        : lists[SourcePrioritizationListTypesEnum.enabled].filter(
+          thisItem => thisItem.id !== id,
+        )
+      ),
+      ...(name === SourcePrioritizationListTypesEnum.disabled
+        ? newItems
+        : lists[SourcePrioritizationListTypesEnum.disabled].filter(
+          thisItem => thisItem.id !== id,
+        )
+      ),
+    ].map(thisItem => thisItem.id);
+
     const updates = {
-      sourcePrioritization: updatedOrder,
-      sources: popupStore.sources,
+      sourcePrioritization: order,
+      sources: items,
     };
 
-    popupStore.sourcePrioritization = updatedOrder;
-
-    console.log('Обновление приоритетов источников:', updatedOrder);
+    console.log('Обновление приоритетов источников:', updates);
     chrome.storage.sync.set(updates);
   }
 </script>
 
-<template>
+<div class="component">
   <h2>Sources</h2>
 
   {#if lists[SourcePrioritizationListTypesEnum.enabled].length}
-    <ol class="list">
-      {#each lists[SourcePrioritizationListTypesEnum.enabled] as thisItem (thisItem.type)}
-        <li
-          class="item"
-          class:itemNew={thisItem.isNew}
-          class:itemDisabled={thisItem.isDisabled}
-        >
-          {SOURCES[thisItem.type].title}
-        </li>
-      {/each}
-    </ol>
+    <List
+      class="list"
+      name={SourcePrioritizationListTypesEnum.enabled}
+      items={lists[SourcePrioritizationListTypesEnum.enabled]}
+      group={listGroup}
+      onDrop={onChange}
+      let:item={thisItem}
+    >
+      <span
+        class="item"
+        class:itemNew={thisItem.isNew}
+        class:itemDisabled={thisItem.isDisabled}
+      >
+        {SOURCES[thisItem.type].title}
+      </span>
+    </List>
   {:else}
     <p>no sources available</p>
   {/if}
-</template>
+</div>
 
 <style lang="scss">
-  .list {
-    counter-reset: sources;
+  .component {
+    > :global(.list) {
+      counter-reset: sources;
 
-    display: flex;
-    flex-direction: raw;
-    flex-wrap: wrap;
-    gap: 7px;
+      display: flex;
+      flex-direction: raw;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    > :global(.list) {
+      counter-reset: sources;
+
+      display: flex;
+      flex-direction: raw;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
   }
 
   .item {
+    display: block;
     position: relative;
     overflow: hidden;
     padding: 3px 7px;
