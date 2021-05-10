@@ -15,6 +15,7 @@ body {
     color: inherit;
     box-sizing: border-box;
 
+    transition-duration: var(--transition-duration-m);
     transition-property: none;
 
     outline-width: 0;
