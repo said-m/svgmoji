@@ -40,10 +40,6 @@
     trigger,
     newItems,
   }) {
-    if (trigger !== TRIGGERS.DROPPED_INTO_ZONE) {
-      return;
-    }
-
     Object.keys(items).forEach(
       thisItemName => items[thisItemName].isNew = false,
     );
@@ -63,6 +59,10 @@
         )
       ),
     ].map(thisItem => thisItem.id);
+
+    if (trigger !== TRIGGERS.DROPPED_INTO_ZONE) {
+      return;
+    }
 
     const updates = {
       sourcePrioritization: order,
@@ -85,12 +85,14 @@
       group={listGroup}
       onDrop={onChange}
       let:item={thisItem}
+      let:index={thisItemIndex}
     >
       <span
         class="item"
         class:itemNew={thisItem.isNew}
         class:itemDisabled={thisItem.isDisabled}
       >
+        <span class="index">{thisItemIndex + 1}</span>
         {SOURCES[thisItem.type].title}
       </span>
     </List>
@@ -102,17 +104,6 @@
 <style lang="scss">
   .component {
     > :global(.list) {
-      counter-reset: sources;
-
-      display: flex;
-      flex-direction: raw;
-      flex-wrap: wrap;
-      gap: 7px;
-    }
-
-    > :global(.list) {
-      counter-reset: sources;
-
       display: flex;
       flex-direction: raw;
       flex-wrap: wrap;
@@ -130,20 +121,6 @@
     border-color: var(--color-background-secondary);
     border-radius: var(--border-radius);
     background-color: var(--color-background-primary);
-
-    &::before {
-      content: counter(sources);
-      counter-increment: sources;
-
-      position: absolute;
-      top: 0;
-      left: -0.07em;
-      font-weight: bold;
-      line-height: 0.5em;
-      font-size: 3em;
-      opacity: 0.1;
-      z-index: 0;
-    }
 
     &New {
       &::after {
@@ -164,6 +141,22 @@
 
     &Disabled {
       opacity: 0.5;
+    }
+  }
+
+  .index {
+    z-index: 0;
+    position: absolute;
+    top: 0;
+    left: -0.07em;
+    font-weight: bold;
+    line-height: 0.5em;
+    font-size: 3em;
+    opacity: 0.1;
+    transition-property: opacity;
+
+    :global(#dnd-action-dragged-el) & {
+      opacity: 0;
     }
   }
 </style>

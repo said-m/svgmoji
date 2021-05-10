@@ -52,6 +52,3 @@
     </li>
   {/each}
 </ol>
-
-<style>
-</style>

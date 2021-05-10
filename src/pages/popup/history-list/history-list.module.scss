@@ -15,7 +15,7 @@
   background-repeat: no-repeat;
   background-size: 70% auto;
   background-position: center center;
-  transition-duration: 70ms;
+  transition-duration: var(--transition-duration-s);
   transition-property: outline;
   outline-style: solid;
   outline-color: var(--color-background-alternative);
