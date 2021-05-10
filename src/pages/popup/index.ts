@@ -1,11 +1,6 @@
-import isEqual from 'lodash.isequal';
-import { ContextMenuModesEnum, CopyModesEnum, ExtensionStorageHistoryItemInterface, ExtensionStorageInterface } from '../../interfaces';
-import styles from './popup.module.scss';
-import { popupStore } from './store';
-import CopyMode from './copy-mode.svelte';
-import ContextMenuMode from './context-menu-mode.svelte';
-import SourcePrioritization from './source-prioritization.svelte';
-import HistoryList from './history-list.svelte';
+import { ExtensionStorageInterface } from '../../interfaces';
+import '../../styles/_common.scss';
+import Popup from './popup.svelte';
 
 (() => {
   const rootContainer = document.getElementById('root');
@@ -14,139 +9,9 @@ import HistoryList from './history-list.svelte';
     return console.error('Не найден элемент для вставки содержимого страницы');
   }
 
-  // history
-
-  const historyWrapEl = document.createElement('div');
-  historyWrapEl.classList.add(styles.wrap);
-  historyWrapEl.innerText = 'loading...';
-  rootContainer.append(historyWrapEl);
-
-  let historyList: typeof HistoryList;
-
-  const updateHistory = ({
-    items,
-  }: {
-    items: Array<ExtensionStorageHistoryItemInterface>,
-  }) => {
-    if (!historyList) {
-      historyWrapEl.innerHTML = '';
-
-      historyList = new HistoryList({
-        target: historyWrapEl,
-        props: {
-          items,
-        },
-      });
-
-      return;
-    }
-
-    historyList.$set({
-      items,
-    });
-  };
-
-  // sources
-
-  const sourcesWrapEl = document.createElement('div');
-  sourcesWrapEl.classList.add(styles.wrap);
-  sourcesWrapEl.innerText = 'loading...';
-  rootContainer.append(sourcesWrapEl);
-
-  let sourcePrioritization: typeof SourcePrioritization;
-
-  const updateSources = ({
-    items,
-    order,
-  }: {
-    items: ExtensionStorageInterface['sources'],
-    order: ExtensionStorageInterface['sourcePrioritization'],
-  }) => {
-    if (!sourcePrioritization) {
-      sourcesWrapEl.innerHTML = '';
-
-      sourcePrioritization = new SourcePrioritization({
-        target: sourcesWrapEl,
-        props: {
-          items,
-          order,
-        },
-      });
-
-      return;
-    }
-
-    sourcePrioritization.$set({
-      items,
-      order,
-    });
-  };
-
-  // context menu mode
-
-  const contextMenuModeWrapEl = document.createElement('div');
-  contextMenuModeWrapEl.classList.add(styles.wrap);
-  contextMenuModeWrapEl.innerText = 'loading...';
-  rootContainer.append(contextMenuModeWrapEl);
-
-  let contextMenuMode: typeof ContextMenuMode;
-
-  const updateContextMenuMode = ({
-    mode,
-  }: {
-    mode: ContextMenuModesEnum,
-  }) => {
-    if (!contextMenuMode) {
-      contextMenuModeWrapEl.innerHTML = '';
-
-      contextMenuMode = new ContextMenuMode({
-        target: contextMenuModeWrapEl,
-        props: {
-          mode,
-        },
-      });
-
-      return;
-    }
-
-    contextMenuMode.$set({
-      mode,
-    });
-  };
-
-  // copy mode
-
-  const copyModeWrapEl = document.createElement('div');
-  copyModeWrapEl.classList.add(styles.wrap);
-  copyModeWrapEl.innerHTML = 'loading...';
-  rootContainer.append(copyModeWrapEl);
-
-  let copyMode: typeof CopyMode;
-
-  const updateCopyMode = ({
-    mode,
-  }: {
-    mode: CopyModesEnum,
-  }) => {
-    if (!copyMode) {
-      copyModeWrapEl.innerHTML = '';
-
-      copyMode = new CopyMode({
-        target: copyModeWrapEl,
-        props: {
-          mode,
-        },
-      });
-
-      return;
-    }
-
-    copyMode.$set({
-      mode,
-    });
-  };
-
-  // loading
+  const popup = new Popup({
+    target: rootContainer,
+  });
 
   const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
     'history',
@@ -159,44 +24,25 @@ import HistoryList from './history-list.svelte';
   chrome.storage.sync.get(
     requiredStorageKeys,
     (result: Partial<ExtensionStorageInterface>) => {
-      if (result.history) {
-        updateHistory({
-          items: result.history,
-        });
-      }
+      popup.$set({
+        history: result.history || [],
+      });
 
-      if (
-        result.sources
-        || result.sourcePrioritization
-      ) {
-        popupStore.sources = result.sources
-          || popupStore.sources;
-        popupStore.sourcePrioritization = result.sourcePrioritization
-          || popupStore.sourcePrioritization;
+      popup.$set({
+        sources: result.sources,
+      });
 
-        updateSources({
-          items: popupStore.sources,
-          order: popupStore.sourcePrioritization,
-        });
-      }
+      popup.$set({
+        sourcePrioritization: result.sourcePrioritization,
+      });
 
-      if (result.contextMenuMode) {
-        popupStore.contextMenuMode = result.contextMenuMode
-          || popupStore.contextMenuMode;
+      popup.$set({
+        contextMenuMode: result.contextMenuMode,
+      });
 
-        updateContextMenuMode({
-          mode: result.contextMenuMode,
-        });
-      }
-
-      if (result.copyMode) {
-        popupStore.copyMode = result.copyMode
-          || popupStore.copyMode;
-
-        updateCopyMode({
-          mode: result.copyMode,
-        });
-      }
+      popup.$set({
+        copyMode: result.copyMode,
+      });
     },
   );
 
@@ -211,55 +57,34 @@ import HistoryList from './history-list.svelte';
       const copyMode: ExtensionStorageInterface['copyMode'] =
         changes?.copyMode?.newValue;
 
-      const shouldUpdate = {
-        history: !!history,
-        sources: sources
-          && !isEqual(sources, popupStore.sources),
-        sourcePrioritization: sourcePrioritization
-          && !isEqual(sourcePrioritization, popupStore.sourcePrioritization),
-        contextMenuMode: contextMenuMode
-          && !isEqual(contextMenuMode, popupStore.contextMenuMode),
-        copyMode: copyMode
-          && !isEqual(copyMode, popupStore.copyMode),
-      };
 
-      if (shouldUpdate.history) {
-        updateHistory({
-          items: history,
+      if (history) {
+        popup.$set({
+          history,
         });
       }
 
-      if (shouldUpdate.sources) {
-        popupStore.sources = sources;
-      }
-
-      if (shouldUpdate.sourcePrioritization) {
-        popupStore.sourcePrioritization = sourcePrioritization;
-      }
-
-      if (
-        shouldUpdate.sources
-        || shouldUpdate.sourcePrioritization
-      ) {
-        updateSources({
-          items: popupStore.sources,
-          order: popupStore.sourcePrioritization,
+      if (sources) {
+        popup.$set({
+          sources,
         });
       }
 
-      if (shouldUpdate.contextMenuMode) {
-        popupStore.contextMenuMode = contextMenuMode;
-
-        updateContextMenuMode({
-          mode: popupStore.contextMenuMode,
+      if (sourcePrioritization) {
+        popup.$set({
+          sourcePrioritization,
         });
       }
 
-      if (shouldUpdate.copyMode) {
-        popupStore.copyMode = copyMode;
+      if (contextMenuMode) {
+        popup.$set({
+          contextMenuMode,
+        });
+      }
 
-        updateCopyMode({
-          mode: popupStore.copyMode,
+      if (copyMode) {
+        popup.$set({
+          copyMode,
         });
       }
     },

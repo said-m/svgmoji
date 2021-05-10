@@ -1,9 +1,10 @@
 <script>
   import { CopyModesEnum } from '../../interfaces';
-  import { popupStore } from './store';
   import EmojiButton from '../../components/emoji-button.svelte';
+  import { copy } from '../../helpers';
 
   export let items;
+  export let mode = CopyModesEnum.link;
 
   $: reversedList = items.reverse();
 
@@ -12,14 +13,14 @@
   }) {
     copy({
       value: item.link,
-      asImage: popupStore.copyMode === CopyModesEnum.image,
+      asImage: mode === CopyModesEnum.image,
     }).catch(
       (error) => console.error(`Ошибка при копировании в буфер обмена: ${error}`),
     )
   }
 </script>
 
-<template>
+<div>
   <h2>Recently copied emojis</h2>
 
   {#if reversedList.length}
@@ -36,7 +37,7 @@
   {:else}
     <p>history is empty</p>
   {/if}
-</template>
+</div>
 
 <style lang="scss">
   .list {
