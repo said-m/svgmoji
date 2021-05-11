@@ -14,3 +14,12 @@
   />
   <slot />
 </label>
+
+<style>
+  label {
+      display: flex;
+      flex-direction: row;
+      gap: 7px;
+      align-items: center;
+  }
+</style>

@@ -18,38 +18,33 @@
 </script>
 
 <style lang="scss">
-  .component {
+  fieldset {
     display: flex;
     flex-direction: column;
     gap: 7px;
-
-    > :global(.option) {
-      display: flex;
-      flex-direction: row;
-      gap: 7px;
-      align-items: baseline;
-    }
   }
 </style>
 
-<fieldset class="component">
+<div>
   <h2>Context menu mode</h2>
 
-  <RadioField
-    class="option"
-    bind:group={mode}
-    value={ContextMenuModesEnum.nested}
-    on:change={onChange}
-  >
-    Submenu with a list of sources
-  </RadioField>
+  <fieldset>
+    <RadioField
+      class="option"
+      bind:group={mode}
+      value={ContextMenuModesEnum.nested}
+      on:change={onChange}
+    >
+      Submenu with a list of sources
+    </RadioField>
 
-  <RadioField
-    class="option"
-    bind:group={mode}
-    value={ContextMenuModesEnum.simple}
-    on:change={onChange}
-  >
-    Action button in root menu (use source priority settings)
-  </RadioField>
-</fieldset>
+    <RadioField
+      class="option"
+      bind:group={mode}
+      value={ContextMenuModesEnum.simple}
+      on:change={onChange}
+    >
+      Action button in root menu (use source priority settings)
+    </RadioField>
+  </fieldset>
+</div>

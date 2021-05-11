@@ -160,16 +160,40 @@ chrome.tabs.onRemoved.addListener(
   tabId => store.tabEmoji.delete(tabId),
 );
 
-// Обновление меню при переключении между вкладками
-// так как у них могут быть активны выделения
-chrome.tabs.onActivated.addListener(
-  tab => {
-    store.activeTabId = tab.tabId;
+const setActiveTab = ({
+  tabId,
+}: {
+  tabId: number,
+}) => {
+  store.activeTabId = tabId;
 
-    updateRootItem({
-      tabId: store.activeTabId,
-    });
-  },
+  updateRootItem({
+    tabId: store.activeTabId,
+  });
+};
+
+// Обновление меню при переключении между вкладками
+// так как у них могут быть оставаться активными выделения
+chrome.tabs.onActivated.addListener(
+  tab => setActiveTab({
+    tabId: tab.tabId,
+  }),
+);
+
+// Трэкаю переключение переключение между окнами,
+// чтобы актуализировать активную вкладку
+// и таргетиться на выделения на ней
+chrome.windows.onFocusChanged.addListener(
+  windowId => windowId > -1
+    && chrome.tabs.query(
+      {
+        active: true,
+        lastFocusedWindow: true,
+      },
+      ([tab]) => setActiveTab({
+        tabId: tab.id,
+      }),
+    ),
 );
 
 // Трекинг выделяемого содержимого

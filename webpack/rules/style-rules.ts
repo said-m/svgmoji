@@ -7,7 +7,12 @@ export const sassRules: RuleSetRule = {
   exclude: SASS_MODULE_REGEX,
   use: [
     ...getStyleLoaders(),
-    'sass-loader',
+    {
+      loader: 'sass-loader',
+      options: {
+        sourceMap: true,
+      }
+    },
   ],
 };
 
@@ -15,6 +20,11 @@ export const sassModuleRules: RuleSetRule = {
   test: SASS_MODULE_REGEX,
   use: [
     ...getStyleLoaders(true),
-    'sass-loader',
+    {
+      loader: 'sass-loader',
+      options: {
+        sourceMap: true,
+      }
+    },
   ],
 };
