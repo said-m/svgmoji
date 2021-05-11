@@ -1,16 +1,17 @@
 {
   "private": true,
   "name": "svgmoji",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Creates a link to an image for the emoji in the selection",
   "main": "dist/background.js",
-  "repository": "https://gitlab.com/the-expanse/projects/personal/svgmoji",
+  "repository": "https://github.com/said-m/svgmoji",
   "author": "Said Magomedov <saids.inbox@gmail.com>",
   "license": "MIT",
   "keywords": [
     "emoji",
     "chrome",
-    "extension"
+    "extension",
+    "svelte"
   ],
   "dependencies": {
     "@csstools/normalize.css": "^11.0.1",
