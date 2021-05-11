@@ -8,7 +8,7 @@ import { PROJECT_INFO } from './src/constants';
 import { BUILD_PATH } from './webpack/constants';
 import { getHtmlPlugin, getScriptRules } from './webpack/helpers';
 import { getPagePath, getPath } from './webpack/helpers/get-path';
-import { fontRules, htmlRules, imageRules, sassModuleRules, sassRules } from './webpack/rules';
+import { fontRules, frameworkRules, htmlRules, imageRules, sassModuleRules, sassRules } from './webpack/rules';
 
 const webpackConstructor = (
   environments: Record<string, unknown>,
@@ -55,6 +55,7 @@ const webpackConstructor = (
         ...getScriptRules({
           mode,
         }),
+        ...frameworkRules,
         sassRules,
         sassModuleRules,
         imageRules,
@@ -63,7 +64,10 @@ const webpackConstructor = (
       ],
     },
     resolve: {
-      extensions: ['.js', '.ts'],
+      alias: {
+        svelte: resolve('node_modules', 'svelte'),
+      },
+      extensions: ['.ts', '.svelte', '.js', '.mjs', '.json'],
     },
     plugins: [
       // Сборка

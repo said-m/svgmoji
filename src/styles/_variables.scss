@@ -21,6 +21,10 @@ $colors: (
 
   --border-radius: 3px;
 
+  --transition-duration-s: 130ms;
+  --transition-duration-m: 130ms;
+  --transition-duration-l: 130ms;
+
   @media (prefers-color-scheme: dark) {
     --color-background-primary: #{map-get(map-get($colors, element), primary)};
     --color-background-secondary: #{map-get(map-get($colors, element), secondary)};

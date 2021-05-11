@@ -15,6 +15,7 @@ body {
     color: inherit;
     box-sizing: border-box;
 
+    transition-duration: var(--transition-duration-m);
     transition-property: none;
 
     outline-width: 0;
@@ -22,6 +23,14 @@ body {
     outline-color: #{use-color(element, alternative)};
     outline-offset: 3px;
   }
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-background-alternative);
 }
 
 p {
@@ -33,14 +42,34 @@ p {
 
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
-  line-height: 1em;
+  line-height: 1.5em;
+}
+
+h1, h2 {
+  position: sticky;
+  top: 0;
+
+  &::before {
+    z-index: -1;
+    opacity: 0.5;
+    display: block;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -7px;
+    right: -7px;
+    bottom: 0;
+    background-color: var(--color-background-primary);
+  }
 }
 
 h1 {
+  z-index: 7;
   font-size: 23px;
   margin-bottom: 10px;
 }
 h2 {
+  z-index: 5;
   font-size: 20px;
   margin-bottom: 7px;
 }
