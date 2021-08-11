@@ -44,7 +44,7 @@
       value={ContextMenuModesEnum.simple}
       on:change={onChange}
     >
-      Action button in root menu (use source priority settings)
+      Action button at the root of menu (use source priority settings)
     </RadioField>
   </fieldset>
 </div>
