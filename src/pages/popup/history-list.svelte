@@ -6,7 +6,7 @@
   export let items;
   export let mode = CopyModesEnum.link;
 
-  $: reversedList = items.reverse();
+  $: reversedList = [...items].reverse();
 
   function onClick({
     item,
