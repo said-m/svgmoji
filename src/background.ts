@@ -10,101 +10,114 @@ import { CONTEXT_MENU_ITEM_NAMES, CONTEXT_MENU_SOURCE_ITEMS, NOTIFICATION_TYPE_I
 import { copy, createLink, extractEmoji, notify } from './helpers';
 import { CopyModesEnum, ExtensionStorageInterface, ExtensionStorageSourceItemInterface, SourcesEnum } from './interfaces';
 
+const initialSync = ({
+  isSameVersion,
+}: {
+  isSameVersion: boolean;
+}) => {
+  const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
+    'sources',
+    'sourcePrioritization',
+    'contextMenuMode',
+    'copyMode',
+  ];
+  chrome.storage.sync.get(
+    requiredStorageKeys,
+    (result: Partial<ExtensionStorageInterface>) => {
+      const sources: ExtensionStorageInterface['sources'] = result.sources || {};
+      store.sourcePrioritization = result.sourcePrioritization || [];
+      store.contextMenuMode = result.contextMenuMode
+        || store.contextMenuMode;
+      store.copyMode = result.copyMode
+        || store.copyMode;
+
+      updateSourceItemOrder();
+
+      const updates: Partial<ExtensionStorageInterface> = {};
+
+      if (!result.contextMenuMode) {
+        updates.contextMenuMode = store.contextMenuMode;
+      }
+
+      if (!result.copyMode) {
+        updates.copyMode = store.copyMode;
+      }
+
+      const oldNewSources = getKeys(sources).filter(
+        thisItem => sources[thisItem]?.isNew,
+      );
+
+      const newSources = Object.values(SourcesEnum).filter(
+        thisItem => !sources[thisItem],
+      );
+
+      if (
+        newSources.length
+        || (
+          oldNewSources.length
+          && !isSameVersion
+        )
+      ) {
+        updates.sources = {
+          ...Object.fromEntries(
+            Object.entries(sources).map(
+              ([
+                thisItemType,
+                thisItem,
+              ]) => [
+                thisItemType,
+                {
+                  ...thisItem,
+                  isNew: false,
+                },
+              ],
+            ),
+          ),
+          ...Object.fromEntries(
+            newSources.map(
+              (thisItem): [SourcesEnum, ExtensionStorageSourceItemInterface] => [
+                thisItem,
+                {
+                  type: thisItem,
+                  isNew: true,
+                  isDisabled: false,
+                },
+              ],
+            ),
+          ),
+        };
+      }
+
+      if (newSources.length) {
+        updates.sourcePrioritization = [
+          ...store.sourcePrioritization.filter(
+            thisItem => !newSources.includes(thisItem),
+          ),
+          ...newSources,
+        ];
+      }
+
+      if (!Object.keys(updates).length) {
+        return;
+      }
+
+      console.log('Обновление хранилища:', updates);
+      chrome.storage.sync.set(updates);
+    },
+  );
+};
+
 chrome.runtime.onInstalled.addListener(
   details => {
     const currentVersion = chrome.runtime.getManifest().version;
     const previousVersion = details.previousVersion;
     // const reason = details.reason;
-    const requiredStorageKeys: Array<keyof ExtensionStorageInterface> = [
-      'sources',
-      'sourcePrioritization',
-      'contextMenuMode',
-      'copyMode',
-    ];
-    chrome.storage.sync.get(
-      requiredStorageKeys,
-      (result: Partial<ExtensionStorageInterface>) => {
-        const sources: ExtensionStorageInterface['sources'] = result.sources || {};
-        store.sourcePrioritization = result.sourcePrioritization || [];
-        store.contextMenuMode = result.contextMenuMode
-          || store.contextMenuMode;
-        store.copyMode = result.copyMode
-          || store.copyMode;
 
-        updateSourceItemOrder();
-
-        const updates: Partial<ExtensionStorageInterface> = {};
-
-        if (!result.contextMenuMode) {
-          updates.contextMenuMode = store.contextMenuMode;
-        }
-
-        if (!result.copyMode) {
-          updates.copyMode = store.copyMode;
-        }
-
-        const oldNewSources = getKeys(sources).filter(
-          thisItem => sources[thisItem]?.isNew,
-        );
-
-        const newSources = Object.values(SourcesEnum).filter(
-          thisItem => !sources[thisItem],
-        );
-
-        if (
-          newSources.length
-          || (
-            oldNewSources.length
-            && currentVersion !== previousVersion
-          )
-        ) {
-          updates.sources = {
-            ...Object.fromEntries(
-              Object.entries(sources).map(
-                ([
-                  thisItemType,
-                  thisItem,
-                ]) => [
-                  thisItemType,
-                  {
-                    ...thisItem,
-                    isNew: false,
-                  },
-                ],
-              ),
-            ),
-            ...Object.fromEntries(
-              newSources.map(
-                (thisItem): [SourcesEnum, ExtensionStorageSourceItemInterface] => [
-                  thisItem,
-                  {
-                    type: thisItem,
-                    isNew: true,
-                    isDisabled: false,
-                  },
-                ],
-              ),
-            ),
-          };
-        }
-
-        if (newSources.length) {
-          updates.sourcePrioritization = [
-            ...store.sourcePrioritization.filter(
-              thisItem => !newSources.includes(thisItem),
-            ),
-            ...newSources,
-          ];
-        }
-
-        if (!Object.keys(updates).length) {
-          return;
-        }
-
-        console.log('Обновление хранилища:', updates);
-        chrome.storage.sync.set(updates);
-      },
-    );
+    if (currentVersion !== previousVersion) {
+      initialSync({
+        isSameVersion: false,
+      });
+    }
 
     // switch (reason) {
     //   case 'install':
@@ -285,3 +298,7 @@ Object.values(CONTEXT_MENU_SOURCE_ITEMS).forEach(
     }),
   ),
 );
+
+initialSync({
+  isSameVersion: true,
+});

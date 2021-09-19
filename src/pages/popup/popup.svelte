@@ -40,10 +40,10 @@
 <style lang="scss">
   .component {
     min-width: 400px;
-    padding: 10px;
+    padding: 15px;
 
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
   }
 </style>
