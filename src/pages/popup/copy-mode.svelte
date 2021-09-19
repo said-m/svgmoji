@@ -35,7 +35,7 @@
       value={CopyModesEnum.link}
       on:change={onChange}
     >
-      A link to an image
+      Link to an image
     </RadioField>
 
     <RadioField
@@ -44,7 +44,7 @@
       value={CopyModesEnum.image}
       on:change={onChange}
     >
-      An image
+      Image
     </RadioField>
   </fieldset>
 </div>
