@@ -1,35 +1,46 @@
 {
   "extends": "@said-m/common/tsconfig",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2017",
+    "module": "ESNext",
+    "target": "ES2020",
     "lib": [
-      "ESNext",
-      "dom",
-      "WebWorker",
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
     ],
     "typeRoots": ["node_modules/@types"],
     "sourceMap": false,
     "outDir": "./dist",
 
     // Svelte:
-    "moduleResolution": "node",
-    // /**
-    //   Svelte Preprocess cannot figure out whether you have a value or a type, so tell TypeScript
-    //   to enforce using `import type` instead of `import` for Types.
-    //  */
-    // "importsNotUsedAsValues": "error",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
 
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "preserve",
+    "types": ["chrome", "node", "vite/client"],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "baseUrl": "."
   },
   "include": [
-    "src",
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue"
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

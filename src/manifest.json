@@ -1,31 +1,38 @@
 {
-  "manifest_version": 2,
-
+  "manifest_version": 3,
+  "name": "SVGMoji",
+  "version": "1.8.0",
+  "description": "Creates a link to an image for the emoji in the selection",
   "permissions": [
     "contextMenus",
-    "notifications",
     "storage",
-    "https://raw.githubusercontent.com/*"
+    "activeTab",
+    "clipboardWrite",
+    "notifications"
   ],
   "background": {
-    "scripts": [
-      "background.js"
-    ]
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "assets/images/logo-16.png",
+      "128": "assets/images/logo-128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/images/logo-16.png",
+    "128": "assets/images/logo-128.png"
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["content-script.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-script.js"
+      ]
     }
-  ],
-  "browser_action": {
-    "default_popup": "popup/index.html"
-  },
-
-  "icons": {
-    "16": "./assets/images/logo-16.png",
-    "128": "./assets/images/logo-128.png"
-  },
-
-  "incognito": "spanning"
+  ]
 }
