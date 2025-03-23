@@ -24,13 +24,21 @@ export default defineBackground(() => {
 
     if (!(tab?.id && emoji)) return;
 
-    sendMessage(
+    const source = info.menuItemId as ISources;
+
+    const response = await sendMessage(
       "copyEmoji",
       {
-        emoji: emoji,
-        source: info.menuItemId as ISources,
+        emoji,
+        source,
       },
       tab.id
     );
+
+    commitToHistory({
+      emoji,
+      source,
+      link: response,
+    });
   });
 });

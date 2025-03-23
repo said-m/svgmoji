@@ -27,7 +27,10 @@ export default defineContentScript({
         emoji: data.emoji,
         name: data.source,
       });
-      const isCopied = await copy({ value: link, asImage: true });
+
+      await copy({ value: link, asImage: true });
+
+      return link;
     });
   },
 });
