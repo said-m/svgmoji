@@ -19,18 +19,20 @@ export const copyText = async ({ value }: { value: string }) => {
 };
 
 export const copyImage = async ({ url }: { url: string }) => {
-  try {
-    const response = await fetch(url);
-    const blob = await response.blob();
+  const response = await fetch(url);
 
-    const { data: pngBlob } = blob.type.startsWith("image/svg")
-      ? await convertSvgToPng({ value: blob })
-      : { data: blob };
-
-    const data = [new ClipboardItem({ [pngBlob.type]: pngBlob })];
-    await navigator.clipboard.write(data);
-    return pngBlob;
-  } catch (error) {
-    throw new Error(`Failed to copy image: ${error}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.statusText}`);
   }
+
+  const blob = await response.blob();
+
+  const { data: pngBlob } = blob.type.startsWith("image/svg")
+    ? await convertSvgToPng({ value: blob })
+    : { data: blob };
+
+  const data = [new ClipboardItem({ [pngBlob.type]: pngBlob })];
+  await navigator.clipboard.write(data);
+
+  return pngBlob;
 };

@@ -38,3 +38,12 @@ export const convertSvgToPng = async ({
     image.src = imageUrl;
   });
 };
+
+export const convertPngToBase64 = async (blob: Blob) => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};

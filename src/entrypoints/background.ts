@@ -1,4 +1,5 @@
-import { ISources } from "@/constants/sources";
+import { ISources, SOURCES } from "@/constants/sources";
+import { COPY_MODES } from "@/constants/storage-data";
 
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async () => {
@@ -25,12 +26,14 @@ export default defineBackground(() => {
     if (!(tab?.id && emoji)) return;
 
     const source = info.menuItemId as ISources;
+    const mode = await copyMode.getValue();
 
-    const response = await sendMessage(
+    const { link, base64Url } = await sendMessage(
       "copyEmoji",
       {
         emoji,
         source,
+        mode,
       },
       tab.id
     );
@@ -38,7 +41,17 @@ export default defineBackground(() => {
     commitToHistory({
       emoji,
       source,
-      link: response,
+      link,
+    });
+
+    notify({
+      id: link,
+      title: `${
+        mode === COPY_MODES.link ? "Link to emoji" : "Image of emoji"
+      } "${emoji}" copied to clipboard`,
+      message: `Source: ${SOURCES[source].title}`,
+      icon:
+        base64Url ?? (mode === COPY_MODES.link ? "/link.png" : "/icon/128.png"),
     });
   });
 });

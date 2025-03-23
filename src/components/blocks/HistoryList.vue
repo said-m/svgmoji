@@ -2,6 +2,8 @@
 import { IStorageHistoryItem } from '@/utils/storage-data';
 import EmojiButton from '../basic/EmojiButton.vue';
 import PopupSection from '../containers/PopupSection.vue';
+import { COPY_MODES } from '@/constants/storage-data';
+import { SOURCES } from '@/constants/sources';
 
 const {
   list,
@@ -13,10 +15,23 @@ const {
 
 async function handleClick(item: IStorageHistoryItem) {
   try {
-    await copy({
+    const copyResult = await copy({
       value: item.link,
       asImage: copyAsImage,
-    })
+    });
+
+    const base64Url =
+      copyResult instanceof Blob
+        ? await convertPngToBase64(copyResult)
+        : undefined;
+
+    notify({
+      id: item.link,
+      title: `${!copyAsImage ? "Link to emoji" : "Image of emoji"
+        } "${item.emoji}" copied to clipboard`,
+      message: `Source: ${SOURCES[item.source].title}`,
+      icon: base64Url ?? (!copyAsImage ? "/link.png" : "/icon/128.png"),
+    });
   } catch (error) {
     console.error('Copy failed:', error)
   }
