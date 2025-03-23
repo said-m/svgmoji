@@ -1,5 +1,5 @@
 {
-  "name": "svgMoji",
+  "name": "SVGmoji",
   "description": "Creates a link to an image for the emoji in the selection",
   "version": "1.8.0",
   "type": "module",

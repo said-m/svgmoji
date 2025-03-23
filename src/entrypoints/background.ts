@@ -1,9 +1,19 @@
 import { ISources, SOURCES } from "@/constants/sources";
-import { COPY_MODES } from "@/constants/storage-data";
+import { CONTEXT_MENU_MODES, COPY_MODES } from "@/constants/storage-data";
+import { IContextMenuItems } from "@/utils/context-menu-items";
 
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async () => {
-    await initializeContextMenus();
+    const mode = await contextMenuMode.getValue();
+
+    await initializeContextMenus(mode);
+  });
+
+  contextMenuMode.watch(async (mode) => {
+    setAvailabilityOfContextMenuItems(
+      CONTEXT_MENU_SOURCE_ITEM_IDS,
+      mode === CONTEXT_MENU_MODES.nested
+    );
   });
 
   onMessage("textSelected", async ({ data, sender }) => {
@@ -12,11 +22,11 @@ export default defineBackground(() => {
     const emoji = extractEmojiFromText(data);
 
     if (emoji) {
-      enableContextMenuItems();
+      showContextMenuItems();
 
       setContextMenuItemTitle(`Copy ${emoji} image to clipboard`);
     } else {
-      disableContextMenuItems();
+      hideContextMenuItems();
     }
   });
 
@@ -25,8 +35,12 @@ export default defineBackground(() => {
 
     if (!(tab?.id && emoji)) return;
 
-    const source = info.menuItemId as ISources;
     const mode = await copyMode.getValue();
+    const prioritization = await sourcePrioritization.getValue();
+
+    const itemId = info.menuItemId as IContextMenuItems;
+    const source =
+      itemId === CONTEXT_MENU_ROOT_ITEM_ID ? prioritization.at(0)! : itemId;
 
     const { link, base64Url } = await sendMessage(
       "copyEmoji",

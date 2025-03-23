@@ -1,9 +1,12 @@
-export type ISources =
-  | "twemoji"
-  | "noto"
-  | "openmoji"
-  | "emojione"
-  | "joypixels";
+export const SOURCE_IDS = [
+  "twemoji",
+  "noto",
+  "openmoji",
+  "emojione",
+  "joypixels",
+] as const;
+
+export type ISources = (typeof SOURCE_IDS)[number];
 
 export interface ISource {
   title: string;
