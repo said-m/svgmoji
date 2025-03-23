@@ -1,33 +1,25 @@
 <script setup lang="ts">
 import { ISources, SOURCES } from '@/constants/sources';
+import PopupSection from '../containers/PopupSection.vue';
 
-const {
-  order,
-} = defineProps<{
-  order: Array<ISources>;
-}>()
-
+const model = defineModel<Array<ISources>>()
 </script>
 
 <template>
-  <div class="sourcesListComponent">
-    <h2>Sources</h2>
-
-    <div class="list">
-      <div v-for="(thisItem, thisItemIndex) in order" :key="thisItem" class="item">
+  <PopupSection class="sourcesListComponent" title="Sources" isIndicatable :indicatorValue="model">
+    <div class="content">
+      <div v-for="(thisItem, thisItemIndex) in model" :key="thisItem" class="item">
         <span class="index">{{ thisItemIndex + 1 }}</span>
         {{ SOURCES[thisItem].title }}
       </div>
     </div>
-
-    <p v-if="!order.length">No sources available</p>
-  </div>
+  </PopupSection>
 </template>
 
 <style scoped>
 .sourcesListComponent {}
 
-.list {
+.content {
   display: flex;
   flex-direction: raw;
   flex-wrap: wrap;

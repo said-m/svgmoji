@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { IStorageHistoryItem } from '@/utils/storage-data';
-import EmojiButton from './EmojiButton.vue';
+import EmojiButton from '../basic/EmojiButton.vue';
+import PopupSection from '../containers/PopupSection.vue';
 
 const {
   list,
@@ -23,15 +24,16 @@ async function handleClick(item: IStorageHistoryItem) {
 </script>
 
 <template>
-  <div class="historyListComponent" v-if="list.length">
-    <EmojiButton v-for="thisItem in list" :key="thisItem.link" :imageUrl="thisItem.link"
-      @click="handleClick(thisItem)" />
-  </div>
-  <div v-else>history is empty</div>
+  <PopupSection class="historyListComponent" title="Recently copied emojis" isIndicatable :indicatorValue="list">
+    <div class="content">
+      <EmojiButton v-for="thisItem in list" :key="thisItem.link" :imageUrl="thisItem.link"
+        @click="handleClick(thisItem)" />
+    </div>
+  </PopupSection>
 </template>
 
 <style scoped>
-.historyListComponent {
+.content {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 7px;

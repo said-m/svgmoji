@@ -1,17 +1,10 @@
 import { ISources, SOURCES } from "@/constants/sources";
-
-export const CONTEXT_MENU_MODES = {
-  nested: "nested",
-  simple: "simple",
-} as const;
-export type IContextMenuModes =
-  (typeof CONTEXT_MENU_MODES)[keyof typeof CONTEXT_MENU_MODES];
-
-export const COPY_MODES = {
-  link: "link",
-  image: "image",
-} as const;
-export type ICopyModes = (typeof COPY_MODES)[keyof typeof COPY_MODES];
+import {
+  CONTEXT_MENU_MODES,
+  COPY_MODES,
+  IContextMenuModes,
+  ICopyModes,
+} from "@/constants/storage-data";
 
 export interface IStorageHistoryItem {
   emoji: string;

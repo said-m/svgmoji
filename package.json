@@ -11,6 +11,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@csstools/normalize.css": "^12.1.1",
     "@webext-core/messaging": "^2.2.0",
     "vue": "^3.5.12"
   },

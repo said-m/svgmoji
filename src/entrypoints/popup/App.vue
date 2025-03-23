@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import storageData, { IContextMenuModes, ICopyModes, IStorageHistoryItem, IStorageSourceItem } from '@/utils/storage-data';
-import HistoryList from '@/components/HistoryList.vue';
-import { ISources, SOURCES } from '@/constants/sources';
-import RadioField from '@/components/RadioField.vue';
-import SourcesList from '@/components/SourcesList.vue';
+import storageData, { IStorageHistoryItem } from '@/utils/storage-data';
+import HistoryList from '@/components/blocks/HistoryList.vue';
+import { ISources } from '@/constants/sources';
+import SourcesList from '@/components/blocks/SourcesList.vue';
+import ContextMenuMode from '@/components/blocks/ContextMenuMode.vue';
+import CopyMode from '@/components/blocks/CopyMode.vue';
+import { COPY_MODES, IContextMenuModes, ICopyModes } from '@/constants/storage-data';
 
 const copyHistory = ref<Array<IStorageHistoryItem> | undefined>();
 const sourcePrioritization = ref<Array<ISources> | undefined>();
@@ -42,22 +44,26 @@ onUnmounted(() => subscribes.forEach((unsubscribe) => unsubscribe()));
 </script>
 
 <template>
-  <HistoryList v-if="copyHistory" :list="copyHistory" :copyAsImage="copyMode === COPY_MODES.image" />
-  <div v-else>history is not available</div>
+  <div class="main">
+    <HistoryList :list="copyHistory" :copyAsImage="copyMode === COPY_MODES.image" />
 
-  <SourcesList v-if="sourcePrioritization" :order="sourcePrioritization" />
-  <div v-else>source are not available</div>
+    <SourcesList v-model="sourcePrioritization" />
 
-  <div>
-    <RadioField v-for="(thisItem, thisItemKey) in CONTEXT_MENU_MODES" :key="thisItemKey" :name="contextMenuMode"
-      :label="thisItem" :value="thisItemKey" :modelValue="contextMenuMode"
-      @change="storageData.contextMenuMode.setValue(thisItemKey)" />
-  </div>
+    <ContextMenuMode :modelValue="contextMenuMode"
+      @update:modelValue="(newValue) => newValue && storageData.contextMenuMode.setValue(newValue)" />
 
-  <div>
-    <RadioField v-for="(thisItem, thisItemKey) in COPY_MODES" :key="thisItemKey" :name="copyMode" :label="thisItem"
-      :value="thisItemKey" :modelValue="copyMode" @change="storageData.copyMode.setValue(thisItemKey)" />
+    <CopyMode :modelValue="copyMode"
+      @update:modelValue="(newValue) => newValue && storageData.copyMode.setValue(newValue)" />
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.main {
+  min-width: 400px;
+  padding: 15px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+</style>
