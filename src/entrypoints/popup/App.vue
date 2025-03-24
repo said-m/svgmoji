@@ -47,7 +47,8 @@ onUnmounted(() => subscribes.forEach((unsubscribe) => unsubscribe()));
   <div class="main">
     <HistoryList :list="copyHistory" :copyAsImage="copyMode === COPY_MODES.image" />
 
-    <SourcesList v-model="sourcePrioritization" />
+    <SourcesList :modelValue="sourcePrioritization"
+      @update:modelValue="(newValue) => newValue && storageData.sourcePrioritization.setValue(newValue)" />
 
     <ContextMenuMode :modelValue="contextMenuMode"
       @update:modelValue="(newValue) => newValue && storageData.contextMenuMode.setValue(newValue)" />

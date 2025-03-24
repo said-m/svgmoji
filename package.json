@@ -12,11 +12,15 @@
   },
   "dependencies": {
     "@csstools/normalize.css": "^12.1.1",
+    "@vueuse/core": "^13.0.0",
+    "@vueuse/integrations": "^13.0.0",
     "@webext-core/messaging": "^2.2.0",
+    "sortablejs": "^1.15.6",
     "vue": "^3.5.12"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.280",
+    "@types/sortablejs": "^1.15.8",
     "@wxt-dev/module-vue": "^1.0.1",
     "typescript": "5.6.3",
     "vue-tsc": "^2.1.10",

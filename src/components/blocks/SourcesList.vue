@@ -1,47 +1,63 @@
 <script setup lang="ts">
-import { ISources, SOURCES } from '@/constants/sources';
+import { SOURCES } from '@/constants/sources';
 import PopupSection from '../containers/PopupSection.vue';
 import { IStorageSourcePrioritizationItem } from '@/utils/storage-data';
+import { useSortable } from '@vueuse/integrations/useSortable';
 import { ref } from 'vue';
+import { until, watchOnce, watchWithFilter } from '@vueuse/core';
 
 const model = defineModel<IStorageSourcePrioritizationItem>();
+const list = useTemplateRef('list');
+const order = ref<IStorageSourcePrioritizationItem>(model.value || []);
+const isDragging = ref(false);
 
-const draggedItem = ref<ISources | null>(null);
-const draggedOverItem = ref<ISources | null>(null);
+// Sync initial and subsequent model changes to order
+watchWithFilter(() => model.value, (newValue) => {
+  if (!newValue || JSON.stringify(newValue) === JSON.stringify(order.value)) {
+    return;
+  }
 
-const handleDragStart = (item: ISources) => {
-  draggedItem.value = item;
-};
+  order.value = [...newValue];
+}, {
+  immediate: true,
+  eventFilter: async (i) => {
+    await until(isDragging).toBe(false)
 
-const handleDragOver = (e: DragEvent, item: ISources) => {
-  e.preventDefault();
-  draggedOverItem.value = item;
-};
+    return i();
+  },
+});
 
-const handleDrop = (targetItem: ISources) => {
-  if (!draggedItem.value || !model.value) return;
+// Sync order changes back to model
+watchWithFilter(order, (newValue) => {
+  if (!newValue || JSON.stringify(newValue) === JSON.stringify(model.value)) {
+    return;
+  }
 
-  const newList = [...model.value];
-  const fromIndex = newList.indexOf(draggedItem.value);
-  const toIndex = newList.indexOf(targetItem);
+  model.value = [...newValue];
+}, {
+  eventFilter: async (i) => {
+    await until(isDragging).toBe(false)
 
-  newList.splice(fromIndex, 1);
-  newList.splice(toIndex, 0, draggedItem.value);
+    return i();
+  },
+});
 
-  model.value = newList;
-  draggedItem.value = null;
-  draggedOverItem.value = null;
-};
+watchOnce(() => order.value.length, () => {
+  useSortable(list, order, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    onStart: () => isDragging.value = true,
+    onEnd: () => isDragging.value = false,
+  });
+})
 </script>
 
 <template>
   <PopupSection class="sourcesListComponent" title="Sources" isIndicatable :indicatorValue="model">
-    <div class="content">
-      <div v-for="(thisItem, thisItemIndex) in model" :key="thisItem" class="item" :class="{
-        'isDragging': draggedItem === thisItem,
-        'isDragOver': draggedOverItem === thisItem
-      }" draggable="true" @dragstart="handleDragStart(thisItem)" @dragover="handleDragOver($event, thisItem)"
-        @drop="handleDrop(thisItem)" @dragend="draggedItem = null">
+    <div ref="list" class="content">
+      <div v-for="(thisItem, thisItemIndex) in order" :key="thisItem" class="item">
         <span class="index">{{ thisItemIndex + 1 }}</span>
         {{ SOURCES[thisItem].title }}
       </div>
@@ -86,15 +102,6 @@ const handleDrop = (targetItem: ISources) => {
   &.isDisabledItem {
     opacity: 0.5;
   }
-
-  &.isDragging {
-    opacity: 0.5;
-    cursor: grabbing;
-  }
-
-  &.isDragOver {
-    border-color: var(--color-element-primary);
-  }
 }
 
 .index {
@@ -107,5 +114,19 @@ const handleDrop = (targetItem: ISources) => {
   font-size: 3em;
   opacity: 0.1;
   transition-property: opacity;
+}
+
+.sortable-ghost {
+  opacity: 0.5;
+  background-color: var(--color-background-secondary);
+}
+
+.sortable-chosen {
+  cursor: grabbing;
+}
+
+.sortable-drag {
+  cursor: grabbing;
+  background-color: var(--color-background-primary);
 }
 </style>

@@ -8,7 +8,7 @@ const {
   list,
   copyAsImage = false,
 } = defineProps<{
-  list: Array<IStorageHistoryItem>;
+  list: Array<IStorageHistoryItem> | undefined;
   copyAsImage?: boolean;
 }>();
 
