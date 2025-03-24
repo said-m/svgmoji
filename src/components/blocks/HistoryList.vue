@@ -2,7 +2,6 @@
 import { IStorageHistoryItem } from '@/utils/storage-data';
 import EmojiButton from '../basic/EmojiButton.vue';
 import PopupSection from '../containers/PopupSection.vue';
-import { COPY_MODES } from '@/constants/storage-data';
 import { SOURCES } from '@/constants/sources';
 
 const {
@@ -42,7 +41,7 @@ async function handleClick(item: IStorageHistoryItem) {
   <PopupSection class="historyListComponent" title="Recently copied emojis" isIndicatable :indicatorValue="list">
     <div class="content">
       <EmojiButton v-for="thisItem in list" :key="thisItem.link" :imageUrl="thisItem.link"
-        @click="handleClick(thisItem)" />
+        @click="handleClick(thisItem)" :title="`${thisItem.emoji} from ${SOURCES[thisItem.source].title}`" />
     </div>
   </PopupSection>
 </template>

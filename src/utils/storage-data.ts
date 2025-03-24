@@ -12,11 +12,7 @@ export interface IStorageHistoryItem {
   link: string;
 }
 
-export interface IStorageSourceItem {
-  type: ISources;
-  isDisabled: boolean;
-  isNew: boolean;
-}
+export type IStorageSourcePrioritizationItem = Array<ISources>;
 
 export const copyHistory = storage.defineItem("sync:history", {
   fallback: new Array<IStorageHistoryItem>(),
@@ -31,7 +27,7 @@ export const commitToHistory = async (value: IStorageHistoryItem) => {
 export const sourcePrioritization = storage.defineItem(
   "sync:sourcePrioritization",
   {
-    fallback: Object.keys(SOURCES) as Array<ISources>,
+    fallback: Object.keys(SOURCES) as IStorageSourcePrioritizationItem,
   }
 );
 

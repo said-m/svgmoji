@@ -1,12 +1,12 @@
 <template>
-  <button class="emojiButtonComponent" :style="{ backgroundImage: `url(${imageUrl})` }" tabindex="0" />
+  <button class="emojiButtonComponent" :style="{ backgroundImage: `url(${imageUrl})` }" tabindex="0" :title />
 </template>
 
 <script setup lang="ts">
 defineProps<{
   imageUrl: string;
+  title?: string;
 }>()
-
 </script>
 
 <style scoped>
