@@ -1,35 +1,3 @@
 {
-  "extends": "@said-m/common/tsconfig",
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2017",
-    "lib": [
-      "ESNext",
-      "dom",
-      "WebWorker",
-    ],
-    "typeRoots": ["node_modules/@types"],
-    "sourceMap": false,
-    "outDir": "./dist",
-
-    // Svelte:
-    "moduleResolution": "node",
-    // /**
-    //   Svelte Preprocess cannot figure out whether you have a value or a type, so tell TypeScript
-    //   to enforce using `import type` instead of `import` for Types.
-    //  */
-    // "importsNotUsedAsValues": "error",
-    "isolatedModules": true,
-
-    "strict": false,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
-  },
-  "include": [
-    "src",
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "extends": "./.wxt/tsconfig.json"
 }

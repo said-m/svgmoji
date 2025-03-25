@@ -1,9 +1,7 @@
-# Svgmoji 👋
+# WXT + Vue 3
 
-An extension that adds buttons to the context menu, that generate a corresponding link to an image for the emoji in the selection, or copies the image itself to the clipboard.
+This template should help get you started developing with Vue 3 in WXT.
 
-> ℹ️ Supported sources: `Twemoji`, `Noto Color Emoji`, `Openmoji`, `Emojione`, `JoyPixels`.
+## Recommended IDE Setup
 
----
-
-![Promo image](./docs/assets/1%20-%20Main.png)
+- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar).

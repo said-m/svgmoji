@@ -1,58 +1,29 @@
 {
-  "private": true,
-  "name": "svgmoji",
-  "version": "1.7.2",
+  "name": "SVGmoji",
   "description": "Creates a link to an image for the emoji in the selection",
-  "main": "dist/background.js",
-  "repository": "https://github.com/said-m/svgmoji",
-  "author": "Said Magomedov <saids.inbox@gmail.com>",
-  "license": "MIT",
-  "keywords": [
-    "emoji",
-    "chrome",
-    "extension",
-    "svelte"
-  ],
-  "dependencies": {
-    "@csstools/normalize.css": "^12.0.0",
-    "@said-m/common": "^1.0.0",
-    "lodash.isequal": "^4.5.0",
-    "svelte-dnd-action": "^0.9.11"
-  },
+  "version": "1.8.0",
+  "type": "module",
   "scripts": {
-    "start": "webpack --mode development --watch",
-    "build": "webpack --mode production",
-    "validate": "tsc --noEmit --skipLibCheck",
-    "lint": "tslint -p tsconfig.json",
-    "prepare": "husky install"
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "compile": "vue-tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "@csstools/normalize.css": "^12.1.1",
+    "@vueuse/core": "^13.0.0",
+    "@vueuse/integrations": "^13.0.0",
+    "@webext-core/messaging": "^2.2.0",
+    "sortablejs": "^1.15.6",
+    "vue": "^3.5.12"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.157",
-    "@types/copy-webpack-plugin": "^8.0.1",
-    "@types/lodash.isequal": "^4.5.5",
-    "@types/lodash.template": "^4.5.0",
-    "@types/zip-webpack-plugin": "^3.0.3",
-    "copy-webpack-plugin": "9.0.1",
-    "css-loader": "^6.3.0",
-    "fork-ts-checker-webpack-plugin": "^6.3.3",
-    "html-loader": "^2.1.2",
-    "html-webpack-plugin": "^5.3.2",
-    "husky": "^7.0.2",
-    "lodash.template": "^4.5.0",
-    "resolve-url-loader": "^4.0.0",
-    "sass": "^1.41.1",
-    "sass-loader": "^12.1.0",
-    "style-loader": "^3.2.1",
-    "svelte": "^3.42.6",
-    "svelte-loader": "^3.1.2",
-    "svelte-preprocess": "^4.9.4",
-    "ts-loader": "^9.2.5",
-    "ts-node": "^10.2.1",
-    "tslint": "^6.1.3",
-    "typescript": "^4.4.3",
-    "webpack": "^5.53.0",
-    "webpack-cli": "^4.8.0",
-    "webpack-extension-reloader": "^1.1.4",
-    "zip-webpack-plugin": "^4.0.1"
+    "@types/chrome": "^0.0.280",
+    "@types/sortablejs": "^1.15.8",
+    "@wxt-dev/module-vue": "^1.0.1",
+    "typescript": "5.6.3",
+    "vue-tsc": "^2.1.10",
+    "wxt": "^0.19.29"
   }
 }
