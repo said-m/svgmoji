@@ -39,22 +39,47 @@ export default defineBackground(() => {
     const prioritization = await sourcePrioritization.getValue();
 
     const itemId = info.menuItemId as IContextMenuItems;
-    const source =
-      itemId === CONTEXT_MENU_ROOT_ITEM_ID ? prioritization.at(0)! : itemId;
 
-    const { link, base64Url } = await sendMessage(
-      "copyEmoji",
-      {
-        emoji,
-        source,
-        mode,
-      },
-      tab.id
-    );
+    // Try sources one by one until success
+    const sources =
+      itemId === CONTEXT_MENU_ROOT_ITEM_ID ? prioritization : [itemId];
+
+    let result = null;
+    let usedSource: ISources | null = null;
+
+    for (const source of sources) {
+      try {
+        result = await sendMessage(
+          "copyEmoji",
+          {
+            emoji,
+            source,
+            mode,
+          },
+          tab.id
+        );
+        usedSource = source;
+        break;
+      } catch (error) {
+        console.warn(`Failed to get emoji from ${source}:`, error);
+        continue;
+      }
+    }
+
+    if (!result || !usedSource) {
+      notify({
+        title: `Failed to get emoji "${emoji}"`,
+        message: "Could not find emoji in any available source",
+        icon: "/error.png",
+      });
+      return;
+    }
+
+    const { link, base64Url } = result;
 
     commitToHistory({
       emoji,
-      source,
+      source: usedSource,
       link,
     });
 
@@ -63,7 +88,7 @@ export default defineBackground(() => {
       title: `${
         mode === COPY_MODES.link ? "Link to emoji" : "Image of emoji"
       } "${emoji}" copied to clipboard`,
-      message: `Source: ${SOURCES[source].title}`,
+      message: `Source: ${SOURCES[usedSource].title}`,
       icon:
         base64Url ?? (mode === COPY_MODES.link ? "/link.png" : "/icon/128.png"),
     });
