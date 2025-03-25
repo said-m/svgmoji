@@ -21,6 +21,10 @@ export const copyHistory = storage.defineItem("sync:history", {
 export const commitToHistory = async (value: IStorageHistoryItem) => {
   const history = await copyHistory.getValue();
 
+  if (history.at(0)?.link === value.link) {
+    return;
+  }
+
   copyHistory.setValue([value, ...history.slice(0, 29)]);
 };
 

@@ -11,7 +11,7 @@ const { title, indicatorValue, isIndicatable = false, } = defineProps<{
     <h2>{{ title }}</h2>
 
     <template v-if="isIndicatable">
-      <slot v-if="indicatorValue" />
+      <slot v-if="indicatorValue" v-bind="{ data: indicatorValue }" />
       <p v-else-if="indicatorValue === undefined">loading…</p>
       <p v-else>unavailable</p>
     </template>

@@ -32,17 +32,22 @@ async function handleClick(item: IStorageHistoryItem) {
       icon: base64Url ?? (!copyAsImage ? "/link.png" : "/icon/128.png"),
     });
   } catch (error) {
-    console.error('Copy failed:', error)
+    notify({
+      title: `Failed to copy "${item.emoji}"`,
+      message: `Source: ${SOURCES[item.source].title}`,
+      icon: "/error.png",
+    });
   }
 }
 </script>
 
 <template>
   <PopupSection class="historyListComponent" title="Recently copied emojis" isIndicatable :indicatorValue="list">
-    <div class="content">
+    <div v-if="list?.length" class="content">
       <EmojiButton v-for="thisItem in list" :key="thisItem.link" :imageUrl="thisItem.link"
         @click="handleClick(thisItem)" :title="`${thisItem.emoji} from ${SOURCES[thisItem.source].title}`" />
     </div>
+    <p v-else>No emojis copied yet</p>
   </PopupSection>
 </template>
 
